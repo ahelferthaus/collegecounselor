@@ -4,7 +4,8 @@ import { defineConfig } from "vite"
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/collegecounselor/',
+  // Vercel serves from '/', GitHub Pages from '/collegecounselor/'
+  base: process.env.VERCEL ? '/' : '/collegecounselor/',
   plugins: [react()],
   resolve: {
     alias: {
