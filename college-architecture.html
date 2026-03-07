@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Counselor AI - Technical Architecture</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            padding: 40px;
+            color: #1e293b;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #0f172a;
+        }
+
+        .subtitle {
+            color: #64748b;
+            margin-bottom: 40px;
+            font-size: 16px;
+        }
+
+        .architecture {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .tier {
+            display: flex;
+            gap: 16px;
+            align-items: stretch;
+        }
+
+        .tier-label {
+            width: 140px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #e2e8f0;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tier-content {
+            flex: 1;
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .box {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+            min-width: 200px;
+            flex: 1;
+        }
+
+        .box-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .box-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .box-title {
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .box-subtitle {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .box-items {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .box-item {
+            font-size: 13px;
+            color: #475569;
+            padding-left: 12px;
+            position: relative;
+        }
+
+        .box-item::before {
+            content: "\2022";
+            position: absolute;
+            left: 0;
+            color: #94a3b8;
+        }
+
+        .box-item.implemented::before {
+            content: "\2713";
+            color: #059669;
+            font-weight: bold;
+        }
+
+        .box-item.planned::before {
+            content: "\25CB";
+            color: #d97706;
+        }
+
+        /* Color schemes */
+        .client .box-icon { background: #ede9fe; color: #7c3aed; }
+        .client .box { border-top: 3px solid #7F56D9; }
+
+        .hosting .box-icon { background: #fce7f3; color: #db2777; }
+        .hosting .box { border-top: 3px solid #ec4899; }
+
+        .backend .box-icon { background: #d1fae5; color: #059669; }
+        .backend .box { border-top: 3px solid #10b981; }
+
+        .ai .box-icon { background: #dbeafe; color: #2563eb; }
+        .ai .box { border-top: 3px solid #3b82f6; }
+
+        .data .box-icon { background: #fef3c7; color: #d97706; }
+        .data .box { border-top: 3px solid #f59e0b; }
+
+        .external .box-icon { background: #e0e7ff; color: #4f46e5; }
+        .external .box { border-top: 3px solid #6366f1; }
+
+        /* Connector lines */
+        .connectors {
+            display: flex;
+            justify-content: center;
+            padding: 8px 0;
+            margin-left: 156px;
+        }
+
+        .connector-group {
+            display: flex;
+            gap: 100px;
+        }
+
+        .connector {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #94a3b8;
+        }
+
+        .connector-line {
+            width: 2px;
+            height: 20px;
+            background: #cbd5e1;
+        }
+
+        .connector-arrow {
+            font-size: 10px;
+        }
+
+        .connector-label {
+            font-size: 10px;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+
+        /* Sections */
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 40px 0 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .bottlenecks {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .bottleneck {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .bottleneck-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .bottleneck-severity {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .severity-high { background: #fee2e2; color: #dc2626; }
+        .severity-medium { background: #fef3c7; color: #d97706; }
+        .severity-low { background: #d1fae5; color: #059669; }
+
+        .bottleneck-title {
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .bottleneck-desc {
+            font-size: 13px;
+            color: #475569;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .bottleneck-solution {
+            font-size: 13px;
+            background: #f1f5f9;
+            padding: 10px 12px;
+            border-radius: 6px;
+            color: #334155;
+        }
+
+        .bottleneck-solution strong {
+            color: #0f172a;
+        }
+
+        /* Deployment flow */
+        .deployment-flow {
+            display: flex;
+            gap: 0;
+            margin-top: 20px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
+        .deploy-step {
+            display: flex;
+            align-items: center;
+        }
+
+        .deploy-box {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 16px 20px;
+            min-width: 160px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .deploy-number {
+            width: 24px;
+            height: 24px;
+            background: #7F56D9;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .deploy-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .deploy-desc {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .deploy-arrow {
+            color: #cbd5e1;
+            font-size: 24px;
+            padding: 0 8px;
+        }
+
+        /* Cost estimate */
+        .cost-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .cost-table th, .cost-table td {
+            padding: 14px 20px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .cost-table th {
+            background: #f8fafc;
+            font-weight: 600;
+            font-size: 13px;
+            color: #475569;
+        }
+
+        .cost-table td {
+            font-size: 14px;
+        }
+
+        .cost-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .cost-table tr:last-child {
+            background: #f5f3ff;
+            font-weight: 600;
+        }
+
+        .note {
+            background: #fffbeb;
+            border: 1px solid #fcd34d;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #92400e;
+        }
+
+        .note strong {
+            color: #78350f;
+        }
+
+        /* Status legend */
+        .legend {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 24px;
+            font-size: 13px;
+            color: #475569;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .legend-dot.done { background: #059669; }
+        .legend-dot.planned { background: #d97706; border: 2px solid #d97706; background: transparent; }
+
+        /* Roadmap */
+        .roadmap {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .phase {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .phase-header {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+            color: #7F56D9;
+        }
+
+        .phase-timeline {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-bottom: 12px;
+        }
+
+        .phase-items {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .phase-item {
+            font-size: 12px;
+            color: #475569;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>College Counselor AI Platform</h1>
+        <p class="subtitle">Technical Architecture & Deployment Guide</p>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-dot done"></div>
+                <span>Implemented</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot planned"></div>
+                <span>Planned</span>
+            </div>
+        </div>
+
+        <div class="architecture">
+            <!-- Client Tier -->
+            <div class="tier client">
+                <div class="tier-label">Client Layer</div>
+                <div class="tier-content">
+                    <div class="box">
+                        <div class="box-header">
+                            <div class="box-icon">🌐</div>
+                            <div>
+                                <div class="box-title">Web Application</div>
+                                <div class="box-subtitle">React 19 + TypeScript + Vite 7</div>
+                            </div>
+                        </div>
+                        <div class="box-items">
+                            <div class="box-item implemented">Landing page with 10 animated sections</div>
+                            <div class="box-item implemented">shadcn/ui component library (50+ components)</div>
+                            <div class="box-item implemented">GSAP + ScrollTrigger animations</div>
+                            <div class="box-item implemented">Lenis smooth scrolling</div>
+                            <div class="box-item implemented">Mobile-responsive design</div>
+                            <div class="box-item planned">AI counselor chat interface</div>
+                            <div class="box-item planned">Student dashboard & profile builder</div>
+                            <div class="box-item planned">Essay editor with AI feedback</div>
+                            <div class="box-item planned">Application tracker & deadlines</div>
+                            <div class="box-item planned">Parent dashboard (Family plan)</div>
+                        </div>
+                    </div>
+                    <div class="box">
+                        <div class="box-header">
+                            <div class="box-icon">📱</div>
+                            <div>
+                                <div class="box-title">Mobile (PWA)</div>
+                                <div class="box-subtitle">Progressive Web App</div>
+                            </div>
+                        </div>
+                        <div class="box-items">
+                            <div class="box-item planned">Mobile-optimized chat interface</div>
+                            <div class="box-item planned">Push notifications for deadlines</div>
+                            <div class="box-item planned">Offline essay drafts</div>
+                            <div class="box-item planned">Quick-access schedule view</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="connectors">
+                <div class="connector-group">
+                    <div class="connector">
+                        <div class="connector-arrow">&#9660;</div>
+                        <div class="connector-line"></div>
+                        <div class="connector-label">HTTPS</div>
+                    </div>
+                    <div class="connector">
+                        <div class="connector-arrow">&#9660;</div>
+                        <div class="connector-line"></div>
+                        <div class="connector-label">HTTPS</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hosting Tier -->
+            <div class="tier hosting">
+                <div class="tier-label">Hosting Layer</div>
+                <div class="tier-content">
+                    <div class="box">
+                        <div class="box-header">
+                            <div class="box-icon">&#9650;</div>
+                            <div>
+                                <div class="box-title">Vercel</div>
+                                <div class="box-subtitle">Primary hosting + Edge functions</div>
+                            </div>
+                        </div>
+                        <div class="box-items">
+                            <div class="box-item implemented">Automatic deployments from GitHub</div>
+                            <div class="box-item implemented">Global CDN + SSL</div>
+                            <div class="box-item implemented">Preview deployments per branch</div>
+                            <div class="box-item planned">Edge functions for API routes</div>
+                            <div class="box-item planned">Analytics & Web Vitals</div>
+                        </div>
+                    </div>
+                    <div class="box">
+                        <div class="box-header">
+                            <div class="box-icon">🐙</div>
+                            <div>
+                                <div class="box-title">GitHub Pages</div>
+                                <div class="box-subtitle">Mirror deployment</div>
+                            </div>
+                        </div>
+                        <div class="box-items">
+                            <div class="box-item implemented">GitHub Actions CI/CD pipeline</div>
+                            <div class="box-item implemented">Auto-deploy on push to main</div>
+                            <div class="box-item implemented">Static site mirror for redundancy</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="connectors">
+                <div class="connector-group">
+                    <div class="connector">
+                        <div class="connector-arrow">&#9660;</div>
+                        <div class="connector-line"></div>
+                        <div class="connector-label">API Calls</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Layer -->
+            <div class="tier ai">
+                <div class="tier-label">AI Layer</div>
+                <div class="tier-content">
+                    <div class="box">
+                        <div class="box-header">
+                            <div class="box-icon">🧠</div>
+                            <div>
+                                <div class="box-title">Anthropic Claude API</div>
+                                <div class="box-subtitle">Primary AI engine</div>
+                            </div>
+                        </div>
+                        <div class="box-items">
+                            <div class="box-item planned">Conversational counseling chat</div>
+                            <div class="box-item planned">Essay feedback & brainstorming</div>
+                            <div class="box-item planned">College recommendation reasoning</div>
+                            <div class="box-item planned">Interview practice simulations</div>
+                            <div class="box-item planned">Mental wellness detection & support</div>
+                        </div>
+                    </div>
+                    <div class="box">
+                        <div class="box-header">
+                            <div class="box-icon">🔍</div>
+                            <div>
+                                <div class="box-title">Semantic Search</div>
+                                <div class="box-subtitle">pgvector + Embeddings</div>
+                            </div>
+                        </div>
+                        <div class="box-items">
+                            <div class="box-item planned">College matching by fit (not just stats)</div>
+                            <div class="box-item planned">Scholarship relevance scoring</div>
+                            <div class="box-item planned">Essay topic suggestions from profile</div>
+                            <div class="box-item planned">Conversation memory & context</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="connectors">
+                <div class="connector-group">
+                    <div class="connector">
+                        <div class="connector-arrow">&#9660;</div>
+                        <div class="connector-line"></div>
+                        <div class="connector-label">API Calls</div>
+                    </div>
+                    <div class="connector">
+                        <div class="connector-arrow">&#9660;</div>
+                        <div class="connector-line"></div>
+                        <div class="connector-label">Vectors</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Backend Tier -->
+            <div class="tier backend">
+                <div class="tier-label">Backend Layer</div>
+                <div class="tier-content">
+                    <div class="box">
+                        <div class="box-header">
+                            <div class="box-icon">&#9889;</div>
+                            <div>
+                                <div class="box-title">Supabase</div>
+                                <div class="box-subtitle">Backend-as-a-Service</div>
+                            </div>
+                        </div>
+                        <div class="box-items">
+                            <div class="box-item planned">Authentication (email, OAuth, magic links)</div>
+                            <div class="box-item planned">Row-level security policies</div>
+                            <div class="box-item planned">Real-time subscriptions</div>
+                            <div class="box-item planned">Edge functions for business logic</div>
+                        </div>
+                    </div>
+                    <div class="box">
+                        <div class="box-header">
+                            <div class="box-icon">🔐</div>
+                            <div>
+                                <div class="box-title">API Gateway</div>
+                                <div class="box-subtitle">Supabase Edge Functions</div>
+                            </div>
+                        </div>
+                        <div class="box-items">
+                            <div class="box-item planned">Rate limiting & usage metering</div>
+                            <div class="box-item planned">Tier enforcement (Free/Pro/Family)</div>
+                            <div class="box-item planned">Webhook handlers (Stripe, etc.)</div>
+                            <div class="box-item planned">AI API orchestration & prompt management</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="connectors">
+                <div class="connector-group">
+                    <div class="connector">
+                        <div class="connector-arrow">&#9660;</div>
+                        <div class="connector-line"></div>
+                        <div class="connector-label">SQL</div>
+                    </div>
+                    <div class="connector">
+                        <div class="connector-arrow">&#9660;</div>
+                        <div class="connector-line"></div>
+                        <div class="connector-label">S3 API</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Tier -->
+            <div class="tier data">
+                <div class="tier-label">Data Layer</div>
+                <div class="tier-content">
+                    <div class="box">
+                        <div class="box-header">
+                            <div class="box-icon">&#128451;</div>
+                            <div>
+                                <div class="box-title">PostgreSQL</div>
+                                <div class="box-subtitle">Via Supabase + pgvector</div>
+                            </div>
+                        </div>
+                        <div class="box-items">
+                            <div class="box-item planned">Users, student profiles, preferences</div>
+                            <div class="box-item planned">Conversations & AI chat history</div>
+                            <div class="box-item planned">College database (4,000+ schools)</div>
+                            <div class="box-item planned">Applications, deadlines, checklists</div>
+                            <div class="box-item planned">Essays & revision history</div>
+                            <div class="box-item planned">Subscription & payment records</div>
+                        </div>
+                    </div>
+                    <div class="box">
+                        <div class="box-header">
+                            <div class="box-icon">📁</div>
+                            <div>
+                                <div class="box-title">File Storage</div>
+                                <div class="box-subtitle">Supabase Storage</div>
+                            </div>
+                        </div>
+                        <div class="box-items">
+                            <div class="box-item planned">Essay drafts & documents</div>
+                            <div class="box-item planned">Student profile attachments</div>
+                            <div class="box-item planned">College brochures & media</div>
+                            <div class="box-item planned">CDN delivery for assets</div>
+                        </div>
+                    </div>
+                    <div class="box">
+                        <div class="box-header">
+                            <div class="box-icon">📊</div>
+                            <div>
+                                <div class="box-title">College Data Sources</div>
+                                <div class="box-subtitle">IPEDS / College Scorecard API</div>
+                            </div>
+                        </div>
+                        <div class="box-items">
+                            <div class="box-item planned">IPEDS institutional data</div>
+                            <div class="box-item planned">College Scorecard API (outcomes)</div>
+                            <div class="box-item planned">Net price & financial data</div>
+                            <div class="box-item planned">Custom enrichment pipeline</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="connectors">
+                <div class="connector-group">
+                    <div class="connector">
+                        <div class="connector-arrow">&#9660;</div>
+                        <div class="connector-line"></div>
+                        <div class="connector-label">Webhooks / API</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- External Services Tier -->
+            <div class="tier external">
+                <div class="tier-label">External Services</div>
+                <div class="tier-content">
+                    <div class="box">
+                        <div class="box-header">
+                            <div class="box-icon">💳</div>
+                            <div>
+                                <div class="box-title">Stripe</div>
+                                <div class="box-subtitle">Payments & Subscriptions</div>
+                            </div>
+                        </div>
+                        <div class="box-items">
+                            <div class="box-item planned">Free / Pro ($29) / Family ($49) tiers</div>
+                            <div class="box-item planned">Monthly & yearly billing</div>
+                            <div class="box-item planned">Usage metering (essay reviews)</div>
+                            <div class="box-item planned">School/district invoicing</div>
+                        </div>
+                    </div>
+                    <div class="box">
+                        <div class="box-header">
+                            <div class="box-icon">📧</div>
+                            <div>
+                                <div class="box-title">Communications</div>
+                                <div class="box-subtitle">Resend / SendGrid</div>
+                            </div>
+                        </div>
+                        <div class="box-items">
+                            <div class="box-item planned">Transactional emails (auth, receipts)</div>
+                            <div class="box-item planned">Deadline reminder notifications</div>
+                            <div class="box-item planned">Weekly progress digests</div>
+                            <div class="box-item planned">Parent notification summaries</div>
+                        </div>
+                    </div>
+                    <div class="box">
+                        <div class="box-header">
+                            <div class="box-icon">📈</div>
+                            <div>
+                                <div class="box-title">Analytics & Monitoring</div>
+                                <div class="box-subtitle">PostHog / Sentry</div>
+                            </div>
+                        </div>
+                        <div class="box-items">
+                            <div class="box-item planned">User behavior analytics (PostHog)</div>
+                            <div class="box-item planned">Error tracking (Sentry)</div>
+                            <div class="box-item planned">Log management (LogFlare)</div>
+                            <div class="box-item planned">AI usage & cost monitoring</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Current Tech Stack -->
+        <h2 class="section-title">Current Tech Stack (Implemented)</h2>
+        <table class="cost-table">
+            <thead>
+                <tr>
+                    <th>Layer</th>
+                    <th>Technology</th>
+                    <th>Version</th>
+                    <th>Purpose</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Framework</td>
+                    <td>React + TypeScript</td>
+                    <td>19.2 / 5.9</td>
+                    <td>UI framework with strict type safety</td>
+                </tr>
+                <tr>
+                    <td>Build Tool</td>
+                    <td>Vite</td>
+                    <td>7.2</td>
+                    <td>Fast dev server & optimized production builds</td>
+                </tr>
+                <tr>
+                    <td>Styling</td>
+                    <td>Tailwind CSS</td>
+                    <td>3.4</td>
+                    <td>Utility-first CSS with custom design tokens</td>
+                </tr>
+                <tr>
+                    <td>UI Components</td>
+                    <td>shadcn/ui + Radix UI</td>
+                    <td>Latest</td>
+                    <td>50+ accessible, composable components</td>
+                </tr>
+                <tr>
+                    <td>Animation</td>
+                    <td>GSAP + ScrollTrigger</td>
+                    <td>3.14</td>
+                    <td>Professional scroll-based animations</td>
+                </tr>
+                <tr>
+                    <td>Smooth Scroll</td>
+                    <td>Lenis</td>
+                    <td>1.3</td>
+                    <td>Smooth scrolling experience</td>
+                </tr>
+                <tr>
+                    <td>Icons</td>
+                    <td>Lucide React</td>
+                    <td>0.562</td>
+                    <td>Consistent icon library</td>
+                </tr>
+                <tr>
+                    <td>Forms</td>
+                    <td>React Hook Form + Zod</td>
+                    <td>7.70 / 4.3</td>
+                    <td>Form state management & schema validation</td>
+                </tr>
+                <tr>
+                    <td>Hosting</td>
+                    <td>Vercel + GitHub Pages</td>
+                    <td>—</td>
+                    <td>Dual deployment with auto CI/CD</td>
+                </tr>
+                <tr>
+                    <td>CI/CD</td>
+                    <td>GitHub Actions</td>
+                    <td>—</td>
+                    <td>Automated build & deploy pipeline</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Deployment Flow -->
+        <h2 class="section-title">Deployment Pipeline</h2>
+        <div class="deployment-flow">
+            <div class="deploy-step">
+                <div class="deploy-box">
+                    <div class="deploy-number">1</div>
+                    <div class="deploy-title">Local Development</div>
+                    <div class="deploy-desc">npm run dev on localhost:5173</div>
+                </div>
+            </div>
+            <div class="deploy-arrow">&rarr;</div>
+            <div class="deploy-step">
+                <div class="deploy-box">
+                    <div class="deploy-number">2</div>
+                    <div class="deploy-title">Push to GitHub</div>
+                    <div class="deploy-desc">git push to main branch</div>
+                </div>
+            </div>
+            <div class="deploy-arrow">&rarr;</div>
+            <div class="deploy-step">
+                <div class="deploy-box">
+                    <div class="deploy-number">3</div>
+                    <div class="deploy-title">Parallel Builds</div>
+                    <div class="deploy-desc">Vercel + GitHub Actions triggered</div>
+                </div>
+            </div>
+            <div class="deploy-arrow">&rarr;</div>
+            <div class="deploy-step">
+                <div class="deploy-box">
+                    <div class="deploy-number">4</div>
+                    <div class="deploy-title">Preview Deploy</div>
+                    <div class="deploy-desc">Vercel generates staging URL</div>
+                </div>
+            </div>
+            <div class="deploy-arrow">&rarr;</div>
+            <div class="deploy-step">
+                <div class="deploy-box">
+                    <div class="deploy-number">5</div>
+                    <div class="deploy-title">Production</div>
+                    <div class="deploy-desc">Live on Vercel + GitHub Pages</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>Dual Deployment:</strong> Vite auto-detects the environment via <code>process.env.VERCEL</code> and sets the correct base path. Vercel serves from <code>/</code>, GitHub Pages serves from <code>/collegecounselor/</code>. Both deploy automatically on push to main.
+        </div>
+
+        <!-- Roadmap -->
+        <h2 class="section-title">Development Roadmap</h2>
+        <div class="roadmap">
+            <div class="phase">
+                <div class="phase-header">Phase 0 — Foundation</div>
+                <div class="phase-timeline">Weeks 1–3</div>
+                <div class="phase-items">
+                    <div class="phase-item">&#9675; Supabase setup (auth, DB, RLS)</div>
+                    <div class="phase-item">&#9675; Core database schema</div>
+                    <div class="phase-item">&#9675; Authentication flows</div>
+                    <div class="phase-item">&#9675; Connect auth to landing CTAs</div>
+                </div>
+            </div>
+            <div class="phase">
+                <div class="phase-header">Phase 1 — Core AI MVP</div>
+                <div class="phase-timeline">Weeks 4–8</div>
+                <div class="phase-items">
+                    <div class="phase-item">&#9675; AI counselor chat interface</div>
+                    <div class="phase-item">&#9675; Student onboarding & profiles</div>
+                    <div class="phase-item">&#9675; College search & recommendations</div>
+                    <div class="phase-item">&#9675; Essay feedback tool</div>
+                    <div class="phase-item">&#9675; Deadline tracker</div>
+                </div>
+            </div>
+            <div class="phase">
+                <div class="phase-header">Phase 2 — Monetization</div>
+                <div class="phase-timeline">Weeks 9–12</div>
+                <div class="phase-items">
+                    <div class="phase-item">&#9675; Stripe subscription tiers</div>
+                    <div class="phase-item">&#9675; Usage metering & enforcement</div>
+                    <div class="phase-item">&#9675; Parent dashboard</div>
+                    <div class="phase-item">&#9675; Email notification system</div>
+                </div>
+            </div>
+            <div class="phase">
+                <div class="phase-header">Phase 3 — Growth</div>
+                <div class="phase-timeline">Weeks 13–18</div>
+                <div class="phase-items">
+                    <div class="phase-item">&#9675; Virtual campus tours</div>
+                    <div class="phase-item">&#9675; Interview prep module</div>
+                    <div class="phase-item">&#9675; Financial aid calculator</div>
+                    <div class="phase-item">&#9675; First-gen support mode</div>
+                </div>
+            </div>
+            <div class="phase">
+                <div class="phase-header">Phase 4 — B2B & Scale</div>
+                <div class="phase-timeline">Weeks 19–24</div>
+                <div class="phase-items">
+                    <div class="phase-item">&#9675; School/district licensing</div>
+                    <div class="phase-item">&#9675; Counselor dashboard & analytics</div>
+                    <div class="phase-item">&#9675; Athletic recruiting integration</div>
+                    <div class="phase-item">&#9675; Club/team group management</div>
+                </div>
+            </div>
+            <div class="phase">
+                <div class="phase-header">Phase 5 — Launch</div>
+                <div class="phase-timeline">Weeks 25–30</div>
+                <div class="phase-items">
+                    <div class="phase-item">&#9675; Mobile PWA optimization</div>
+                    <div class="phase-item">&#9675; Admin panel</div>
+                    <div class="phase-item">&#9675; FERPA compliance</div>
+                    <div class="phase-item">&#9675; Public launch & marketing</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Technical Bottlenecks -->
+        <h2 class="section-title">Technical Bottlenecks & Considerations</h2>
+        <div class="bottlenecks">
+            <div class="bottleneck">
+                <div class="bottleneck-header">
+                    <span class="bottleneck-severity severity-high">High</span>
+                    <span class="bottleneck-title">AI Cost Management</span>
+                </div>
+                <div class="bottleneck-desc">
+                    Claude API calls are expensive at scale. Unlimited chat on the Pro plan means unpredictable costs. A single heavy user could cost more than their subscription.
+                </div>
+                <div class="bottleneck-solution">
+                    <strong>Solution:</strong> Implement token budgets per user per day. Cache common responses. Use smaller models for simple queries, Claude for complex counseling. Monitor cost-per-user closely and adjust tier limits.
+                </div>
+            </div>
+
+            <div class="bottleneck">
+                <div class="bottleneck-header">
+                    <span class="bottleneck-severity severity-high">High</span>
+                    <span class="bottleneck-title">FERPA Compliance (Student Data)</span>
+                </div>
+                <div class="bottleneck-desc">
+                    Student education records are protected under FERPA. If schools or districts use the platform, you must comply with strict data handling requirements. Violations risk federal funding for partner schools.
+                </div>
+                <div class="bottleneck-solution">
+                    <strong>Solution:</strong> Encrypt all student data at rest and in transit. Implement strict access controls. Sign data processing agreements with school partners. Never share student data with third parties. Maintain audit logs.
+                </div>
+            </div>
+
+            <div class="bottleneck">
+                <div class="bottleneck-header">
+                    <span class="bottleneck-severity severity-high">High</span>
+                    <span class="bottleneck-title">AI Safety & Accuracy</span>
+                </div>
+                <div class="bottleneck-desc">
+                    AI giving wrong admissions advice (incorrect deadlines, bad financial estimates, hallucinated requirements) could harm students. Liability and trust are at stake.
+                </div>
+                <div class="bottleneck-solution">
+                    <strong>Solution:</strong> Ground AI responses in verified college data (IPEDS/Scorecard). Add disclaimers. Implement human review for critical advice. Flag low-confidence responses. Maintain a curated knowledge base.
+                </div>
+            </div>
+
+            <div class="bottleneck">
+                <div class="bottleneck-header">
+                    <span class="bottleneck-severity severity-high">High</span>
+                    <span class="bottleneck-title">PCI Compliance for Payments</span>
+                </div>
+                <div class="bottleneck-desc">
+                    Handling payment information requires PCI DSS compliance. Storing or transmitting card data incorrectly means liability for breaches and fines.
+                </div>
+                <div class="bottleneck-solution">
+                    <strong>Solution:</strong> Use Stripe Elements or Stripe Checkout exclusively. Card data never touches your servers — Stripe handles it all. You just receive tokens and webhook events.
+                </div>
+            </div>
+
+            <div class="bottleneck">
+                <div class="bottleneck-header">
+                    <span class="bottleneck-severity severity-medium">Medium</span>
+                    <span class="bottleneck-title">Multi-Tenant Data Isolation</span>
+                </div>
+                <div class="bottleneck-desc">
+                    Schools, families, and individual students on one platform. A bug could expose one student's essays or grades to another user. Critical for trust and compliance.
+                </div>
+                <div class="bottleneck-solution">
+                    <strong>Solution:</strong> Supabase Row Level Security (RLS) policies enforced at the database level. Every query filtered by user/org. Parent accounts scoped to their children only. Test exhaustively.
+                </div>
+            </div>
+
+            <div class="bottleneck">
+                <div class="bottleneck-header">
+                    <span class="bottleneck-severity severity-medium">Medium</span>
+                    <span class="bottleneck-title">College Data Freshness</span>
+                </div>
+                <div class="bottleneck-desc">
+                    College requirements, deadlines, tuition, and acceptance rates change yearly. Stale data leads to bad recommendations and erodes trust.
+                </div>
+                <div class="bottleneck-solution">
+                    <strong>Solution:</strong> Automated pipeline to sync IPEDS/Scorecard data annually. Manual verification for top 200 schools. Timestamp all data and surface "last updated" to users. Community reporting for errors.
+                </div>
+            </div>
+
+            <div class="bottleneck">
+                <div class="bottleneck-header">
+                    <span class="bottleneck-severity severity-medium">Medium</span>
+                    <span class="bottleneck-title">Essay Plagiarism & Academic Integrity</span>
+                </div>
+                <div class="bottleneck-desc">
+                    If the AI writes essays (rather than guides), colleges may flag or reject applications. The platform could develop a reputation that hurts users.
+                </div>
+                <div class="bottleneck-solution">
+                    <strong>Solution:</strong> AI must guide, never write. Implement guardrails that refuse to generate full essays. Track revision history to show student authorship. Educate users on academic integrity in onboarding.
+                </div>
+            </div>
+
+            <div class="bottleneck">
+                <div class="bottleneck-header">
+                    <span class="bottleneck-severity severity-low">Low</span>
+                    <span class="bottleneck-title">Email Deliverability</span>
+                </div>
+                <div class="bottleneck-desc">
+                    Deadline reminders and progress emails to students/parents can trigger spam filters. Gmail and Yahoo have strict requirements for bulk senders.
+                </div>
+                <div class="bottleneck-solution">
+                    <strong>Solution:</strong> Use Resend or SendGrid with proper SPF, DKIM, and DMARC records. Warm up sending reputation gradually. Include easy unsubscribe. Segment by engagement.
+                </div>
+            </div>
+        </div>
+
+        <!-- Cost Estimate -->
+        <h2 class="section-title">Monthly Cost Estimate (Launch Phase)</h2>
+        <table class="cost-table">
+            <thead>
+                <tr>
+                    <th>Service</th>
+                    <th>Tier</th>
+                    <th>Monthly Cost</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Vercel</td>
+                    <td>Pro</td>
+                    <td>$20</td>
+                    <td>Handles significant traffic, preview deploys</td>
+                </tr>
+                <tr>
+                    <td>Supabase</td>
+                    <td>Pro</td>
+                    <td>$25</td>
+                    <td>8GB database, daily backups, realtime</td>
+                </tr>
+                <tr>
+                    <td>Anthropic Claude API</td>
+                    <td>Pay-as-you-go</td>
+                    <td>~$200–500</td>
+                    <td>Depends on user volume; ~$0.02–0.10 per conversation</td>
+                </tr>
+                <tr>
+                    <td>Stripe</td>
+                    <td>Pay-as-you-go</td>
+                    <td>2.9% + $0.30</td>
+                    <td>Per transaction, no monthly fee</td>
+                </tr>
+                <tr>
+                    <td>Resend (Email)</td>
+                    <td>Pro</td>
+                    <td>$20</td>
+                    <td>50k emails/month</td>
+                </tr>
+                <tr>
+                    <td>PostHog (Analytics)</td>
+                    <td>Free</td>
+                    <td>$0</td>
+                    <td>1M events/month free tier</td>
+                </tr>
+                <tr>
+                    <td>Sentry (Errors)</td>
+                    <td>Developer</td>
+                    <td>$0</td>
+                    <td>5K errors/month free tier</td>
+                </tr>
+                <tr>
+                    <td>Domain</td>
+                    <td>—</td>
+                    <td>~$1</td>
+                    <td>$12/year amortized</td>
+                </tr>
+                <tr>
+                    <td><strong>Total</strong></td>
+                    <td></td>
+                    <td><strong>~$270–570/mo</strong></td>
+                    <td>AI API is the primary variable cost</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="note" style="margin-top: 30px; background: #f5f3ff; border-color: #c4b5fd; color: #5b21b6;">
+            <strong>Revenue vs. Cost:</strong> At 100 Pro subscribers ($29/mo = $2,900/mo revenue) the platform is profitable even at the high end of AI costs. The free tier drives acquisition; the key metric is free-to-Pro conversion rate. Target: 5–10% conversion within 30 days.
+        </div>
+
+        <div class="note" style="margin-top: 16px; background: #eff6ff; border-color: #93c5fd; color: #1e40af;">
+            <strong>Current Status:</strong> The landing page is fully built and deployed on Vercel and GitHub Pages. Next step is Phase 0 — setting up Supabase, authentication, and the core database schema to begin building the AI counselor chat experience.
+        </div>
+    </div>
+</body>
+</html>
