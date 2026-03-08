@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Star, ArrowRight, MessageCircle, Calendar, BookOpen } from 'lucide-react';
 import gsap from 'gsap';
+import { useWaitlist } from '@/context/WaitlistContext';
 
 const reviewCards = [
   {
@@ -28,6 +29,7 @@ const reviewCards = [
 ];
 
 export function Hero() {
+  const { openWaitlist } = useWaitlist();
   const heroRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const subtitleRef = useRef<HTMLParagraphElement>(null);
@@ -181,6 +183,7 @@ export function Hero() {
             <div ref={ctaRef} className="flex flex-col sm:flex-row gap-4">
               <Button
                 size="lg"
+                onClick={openWaitlist}
                 className="bg-gradient-purple-teal text-white hover:opacity-90 transition-opacity px-8 py-6 text-lg font-semibold rounded-xl shadow-lg shadow-purple-500/25"
               >
                 Start Your Journey
@@ -189,6 +192,7 @@ export function Hero() {
               <Button
                 variant="outline"
                 size="lg"
+                onClick={openWaitlist}
                 className="border-2 border-navy-200 text-navy-700 hover:bg-navy-50 px-8 py-6 text-lg font-semibold rounded-xl"
               >
                 <MessageCircle className="mr-2 h-5 w-5" />

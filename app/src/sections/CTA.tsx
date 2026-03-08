@@ -3,10 +3,12 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight, Sparkles, Users, GraduationCap } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useWaitlist } from '@/context/WaitlistContext';
 
 gsap.registerPlugin(ScrollTrigger);
 
 export function CTA() {
+  const { openWaitlist } = useWaitlist();
   const sectionRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLDivElement>(null);
@@ -114,6 +116,7 @@ export function CTA() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
               <Button
                 size="lg"
+                onClick={openWaitlist}
                 className="bg-gradient-purple-teal text-white hover:opacity-90 transition-opacity px-8 py-6 text-lg font-semibold rounded-xl shadow-lg shadow-purple-500/25 magnetic-button"
               >
                 Get Started Free
@@ -122,6 +125,7 @@ export function CTA() {
               <Button
                 variant="outline"
                 size="lg"
+                onClick={openWaitlist}
                 className="border-2 border-navy-200 text-navy-700 hover:bg-navy-50 px-8 py-6 text-lg font-semibold rounded-xl"
               >
                 Schedule a Demo

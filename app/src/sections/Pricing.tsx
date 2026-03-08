@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useWaitlist } from '@/context/WaitlistContext';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -71,6 +72,7 @@ const plans = [
 ];
 
 export function Pricing() {
+  const { openWaitlist } = useWaitlist();
   const sectionRef = useRef<HTMLDivElement>(null);
   const cardsRef = useRef<HTMLDivElement>(null);
   const [isYearly, setIsYearly] = useState(true);
@@ -234,6 +236,7 @@ export function Pricing() {
 
                 {/* CTA Button */}
                 <Button
+                  onClick={openWaitlist}
                   className={`w-full py-6 font-semibold rounded-xl transition-all duration-300 ${
                     plan.popular
                       ? 'bg-white text-purple-600 hover:bg-gray-100'

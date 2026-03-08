@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { MessageCircle, Menu, X } from 'lucide-react';
+import { useWaitlist } from '@/context/WaitlistContext';
 
 const navLinks = [
   { label: 'Features', href: '#features' },
@@ -13,6 +14,7 @@ const navLinks = [
 export function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { openWaitlist } = useWaitlist();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -73,6 +75,7 @@ export function Navigation() {
             <div className="hidden lg:flex items-center gap-4">
               <Button
                 variant="ghost"
+                onClick={openWaitlist}
                 className={`text-sm font-medium ${
                   isScrolled ? 'text-navy-700' : 'text-navy-700'
                 }`}
@@ -80,6 +83,7 @@ export function Navigation() {
                 Log In
               </Button>
               <Button
+                onClick={openWaitlist}
                 className="bg-gradient-purple-teal text-white hover:opacity-90 text-sm font-medium rounded-lg"
               >
                 Get Started
@@ -134,11 +138,13 @@ export function Navigation() {
           <div className="mt-6 pt-6 border-t border-gray-100 space-y-3">
             <Button
               variant="outline"
+              onClick={openWaitlist}
               className="w-full justify-center"
             >
               Log In
             </Button>
             <Button
+              onClick={openWaitlist}
               className="w-full justify-center bg-gradient-purple-teal text-white"
             >
               Get Started Free

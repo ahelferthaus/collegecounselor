@@ -1,13 +1,16 @@
-import { 
-  MessageCircle, 
-  Mail, 
-  Phone, 
+import { useState } from 'react';
+import {
+  MessageCircle,
+  Mail,
+  Phone,
   MapPin,
   Twitter,
   Instagram,
   Linkedin,
   Youtube,
-  Heart
+  Heart,
+  Loader2,
+  CheckCircle2,
 } from 'lucide-react';
 
 const footerLinks = {
@@ -45,6 +48,18 @@ const socialLinks = [
 ];
 
 export function Footer() {
+  const [email, setEmail] = useState('');
+  const [subscribed, setSubscribed] = useState(false);
+  const [subscribing, setSubscribing] = useState(false);
+
+  const handleSubscribe = async () => {
+    if (!email || !email.includes('@')) return;
+    setSubscribing(true);
+    await new Promise((r) => setTimeout(r, 800));
+    setSubscribed(true);
+    setSubscribing(false);
+  };
+
   return (
     <footer className="relative bg-navy-900 text-white overflow-hidden">
       {/* Background decoration */}
@@ -174,16 +189,31 @@ export function Footer() {
                 Get college tips, deadline reminders, and success stories.
               </p>
             </div>
-            <div className="flex gap-3 w-full md:w-auto">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="flex-1 md:w-64 px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-sm text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition-colors"
-              />
-              <button className="px-6 py-3 bg-gradient-to-r from-purple-500 to-teal-500 text-white font-medium rounded-xl hover:opacity-90 transition-opacity">
-                Subscribe
-              </button>
-            </div>
+            {subscribed ? (
+              <div className="flex items-center gap-2 text-teal-400">
+                <CheckCircle2 className="w-5 h-5" />
+                <span className="text-sm font-medium">You're subscribed!</span>
+              </div>
+            ) : (
+              <div className="flex gap-3 w-full md:w-auto">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSubscribe()}
+                  placeholder="Enter your email"
+                  className="flex-1 md:w-64 px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-sm text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition-colors"
+                />
+                <button
+                  onClick={handleSubscribe}
+                  disabled={subscribing}
+                  className="px-6 py-3 bg-gradient-to-r from-purple-500 to-teal-500 text-white font-medium rounded-xl hover:opacity-90 transition-opacity disabled:opacity-60 flex items-center gap-2"
+                >
+                  {subscribing && <Loader2 className="w-4 h-4 animate-spin" />}
+                  Subscribe
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
