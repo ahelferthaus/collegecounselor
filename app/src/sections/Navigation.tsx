@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { MessageCircle, Menu, X } from 'lucide-react';
+import { MessageCircle, Menu, X, Map } from 'lucide-react';
 import { useWaitlist } from '@/context/WaitlistContext';
 
 const navLinks = [
@@ -69,6 +70,13 @@ export function Navigation() {
                   {link.label}
                 </button>
               ))}
+              <Link
+                to="/map"
+                className="flex items-center gap-1.5 text-sm font-medium text-purple-600 transition-colors hover:text-purple-700"
+              >
+                <Map className="w-4 h-4" />
+                Campus Map
+              </Link>
             </div>
 
             {/* Desktop CTA */}
@@ -133,8 +141,16 @@ export function Navigation() {
                 {link.label}
               </button>
             ))}
+            <Link
+              to="/map"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center gap-2 w-full text-left px-4 py-3 text-purple-600 font-medium hover:bg-purple-50 rounded-xl transition-colors"
+            >
+              <Map className="w-4 h-4" />
+              Campus Map
+            </Link>
           </div>
-          
+
           <div className="mt-6 pt-6 border-t border-gray-100 space-y-3">
             <Button
               variant="outline"
