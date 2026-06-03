@@ -28,15 +28,26 @@ import {
 import { MapView, type MapRegion, type MapViewHandle } from '@/components/map/MapView';
 import { SchoolList } from '@/components/map/SchoolList';
 import { SchoolForm, type FormSeed } from '@/components/map/SchoolForm';
+import { SyncMenu } from '@/components/map/SyncMenu';
 import { useSchools, type NewSchool } from '@/hooks/useSchools';
+import { useAuth } from '@/hooks/useAuth';
+import { isSupabaseConfigured } from '@/lib/supabaseClient';
 import { type School, QUALITY_COLORS } from '@/lib/schools';
 import { cn } from '@/lib/utils';
 
 const REGIONS: MapRegion[] = ['US', 'Europe', 'All'];
 
 export function CampusMapPage() {
-  const { schools, addSchool, updateSchool, removeSchool, clearAll, importSchools } =
-    useSchools();
+  const { userId, email, signInWithEmail, signOut } = useAuth();
+  const {
+    schools,
+    status,
+    addSchool,
+    updateSchool,
+    removeSchool,
+    clearAll,
+    importSchools,
+  } = useSchools(userId);
 
   const mapRef = useRef<MapViewHandle>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -82,23 +93,31 @@ export function CampusMapPage() {
     setFormOpen(true);
   }
 
-  function handleSubmit(data: NewSchool) {
-    if (formSeed?.school) {
-      updateSchool(formSeed.school.id, data);
-      toast.success('School updated');
-      focusSchool(formSeed.school.id);
-    } else {
-      const created = addSchool(data);
-      toast.success('School added');
-      setSelectedId(created.id);
-      mapRef.current?.flyTo(created.lat, created.lng, 9);
+  async function handleSubmit(data: NewSchool) {
+    try {
+      if (formSeed?.school) {
+        await updateSchool(formSeed.school.id, data);
+        toast.success('School updated');
+        focusSchool(formSeed.school.id);
+      } else {
+        const created = await addSchool(data);
+        toast.success('School added');
+        setSelectedId(created.id);
+        mapRef.current?.flyTo(created.lat, created.lng, 9);
+      }
+    } catch {
+      toast.error('Could not save — your changes are kept locally.');
     }
   }
 
-  function handleDelete(id: string) {
-    removeSchool(id);
-    if (selectedId === id) setSelectedId(null);
-    toast.success('School removed');
+  async function handleDelete(id: string) {
+    try {
+      await removeSchool(id);
+      if (selectedId === id) setSelectedId(null);
+      toast.success('School removed');
+    } catch {
+      toast.error('Could not remove that school.');
+    }
   }
 
   function handleExport() {
@@ -119,11 +138,11 @@ export function CampusMapPage() {
     e.target.value = ''; // allow re-importing the same file
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.onload = async () => {
       try {
         const parsed = JSON.parse(String(reader.result));
         if (!Array.isArray(parsed)) throw new Error('bad format');
-        importSchools(parsed as School[]);
+        await importSchools(parsed as School[]);
         toast.success(`Imported ${parsed.length} schools`);
       } catch {
         toast.error('Could not read that file');
@@ -132,13 +151,13 @@ export function CampusMapPage() {
     reader.readAsText(file);
   }
 
-  function handleClearAll() {
+  async function handleClearAll() {
     if (
       window.confirm(
         'Remove all tagged schools? This clears your saved map and cannot be undone.',
       )
     ) {
-      clearAll();
+      await clearAll();
       setSelectedId(null);
       toast.success('Cleared your map');
     }
@@ -192,6 +211,13 @@ export function CampusMapPage() {
         </div>
 
         <div className="flex items-center gap-2">
+          <SyncMenu
+            configured={isSupabaseConfigured}
+            email={email}
+            status={status}
+            onSignIn={signInWithEmail}
+            onSignOut={signOut}
+          />
           <Button
             onClick={openAddForm}
             className="hidden bg-gradient-purple-teal text-white hover:opacity-90 sm:inline-flex"
