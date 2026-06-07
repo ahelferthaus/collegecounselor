@@ -2,9 +2,19 @@
 // Free, no per-token cost. Get a key at https://api.data.gov/signup/ and set
 // VITE_SCORECARD_API_KEY; falls back to the shared (rate-limited) DEMO_KEY.
 
-const API_KEY =
-  (import.meta.env.VITE_SCORECARD_API_KEY as string | undefined) || 'DEMO_KEY';
+import { getScorecardKey } from './aiKey';
+
 const BASE = 'https://api.data.gov/ed/collegescorecard/v1/schools';
+
+// Prefer a user-pasted key (stored only in their browser), then a build-time
+// env var, then the shared (rate-limited) DEMO_KEY.
+function apiKey(): string {
+  return (
+    getScorecardKey() ||
+    (import.meta.env.VITE_SCORECARD_API_KEY as string | undefined) ||
+    'DEMO_KEY'
+  );
+}
 
 export interface CollegeData {
   id: number;
@@ -85,7 +95,7 @@ export async function lookupCollege(name: string): Promise<CollegeData | null> {
   if (cache.has(key)) return cache.get(key) ?? null;
 
   const url =
-    `${BASE}?api_key=${API_KEY}` +
+    `${BASE}?api_key=${apiKey()}` +
     `&school.name=${encodeURIComponent(cleanName(name))}` +
     `&fields=${FIELDS}&per_page=1&sort=latest.student.size:desc`;
 
@@ -178,7 +188,7 @@ export async function fetchSchoolPool(limit = 200): Promise<RankCollege[]> {
   const out: RankCollege[] = [];
   for (let page = 0; page < pages; page++) {
     const url =
-      `${BASE}?api_key=${API_KEY}` +
+      `${BASE}?api_key=${apiKey()}` +
       `&school.degrees_awarded.predominant=3` +
       `&school.operating=1` +
       `&latest.student.size__range=1000..` +

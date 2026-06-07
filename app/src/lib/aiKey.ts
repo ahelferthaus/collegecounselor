@@ -31,3 +31,23 @@ export function maskKey(k: string): string {
   if (k.length <= 12) return '••••';
   return `${k.slice(0, 7)}…${k.slice(-4)}`;
 }
+
+// --- College Scorecard API key (free, from api.data.gov) -----------------
+const SCORECARD_KEY = 'cc_scorecard_key_v1';
+
+export function getScorecardKey(): string {
+  try {
+    return localStorage.getItem(SCORECARD_KEY) ?? '';
+  } catch {
+    return '';
+  }
+}
+
+export function setScorecardKey(value: string): void {
+  try {
+    if (value) localStorage.setItem(SCORECARD_KEY, value);
+    else localStorage.removeItem(SCORECARD_KEY);
+  } catch {
+    /* storage unavailable */
+  }
+}

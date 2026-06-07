@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { MessageCircle, Menu, X, Map, UserRound, Sparkles, Compass, Trophy } from 'lucide-react';
+import { MessageCircle, Menu, X, Map, UserRound, Sparkles, Compass, Trophy, Columns3 } from 'lucide-react';
 import { useWaitlist } from '@/context/WaitlistContext';
 
 const navLinks = [
@@ -90,6 +90,13 @@ export function Navigation() {
               >
                 <Trophy className="w-4 h-4" />
                 Rankings
+              </Link>
+              <Link
+                to="/compare"
+                className="flex items-center gap-1.5 text-sm font-medium text-purple-600 transition-colors hover:text-purple-700"
+              >
+                <Columns3 className="w-4 h-4" />
+                Compare
               </Link>
               <Link
                 to="/profile"
@@ -192,6 +199,14 @@ export function Navigation() {
             >
               <Trophy className="w-4 h-4" />
               Rankings
+            </Link>
+            <Link
+              to="/compare"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center gap-2 w-full text-left px-4 py-3 text-purple-600 font-medium hover:bg-purple-50 rounded-xl transition-colors"
+            >
+              <Columns3 className="w-4 h-4" />
+              Compare
             </Link>
             <Link
               to="/profile"
