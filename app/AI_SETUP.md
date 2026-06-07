@@ -40,6 +40,15 @@ Set in `.env` / Vercel:
 - `VITE_AI_MODEL` — Claude model (default `claude-sonnet-4-6`; use `claude-opus-4-8` for max quality)
 - `VITE_SCORECARD_API_KEY` — free key from https://api.data.gov/signup/ to lift College Scorecard rate limits
 
+## Live campus events (web search)
+The "Upcoming events" button on each school card fetches **live** virtual/on-campus
+admissions events on demand using Claude's **web search** tool (no pre-scraping; no
+stored global dataset). It's served most reliably by the **Supabase / Messages API**
+backend (the function enables the `web_search` tool when `webSearch:true`). Results
+are cached in the browser for 12h.
+- Extra cost: web search is billed per search (~$10 / 1,000 searches) on top of tokens.
+- Always "AI-summarized — verify on the official page"; events are not guaranteed.
+
 ## Cost summary
 - **Vercel + Agent SDK**: draws from your plan's monthly Agent-SDK credit pool first (Pro $20 / Max 5× $100 / Max 20× $200), then pay-per-token.
 - **Supabase + Messages API**: pay-per-token only (no plan credit).

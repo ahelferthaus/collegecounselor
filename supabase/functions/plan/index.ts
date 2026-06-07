@@ -46,7 +46,9 @@ Deno.serve(async (req) => {
     return json({ error: 'Invalid JSON body.' }, 400);
   }
 
-  const { system, prompt, model, apiKey } = body;
+  const { system, prompt, model, apiKey, webSearch } = body as typeof body & {
+    webSearch?: boolean;
+  };
   if (!prompt || !system) return json({ error: 'Missing prompt.' }, 400);
 
   const serverKey = Deno.env.get('ANTHROPIC_API_KEY');
@@ -59,6 +61,17 @@ Deno.serve(async (req) => {
     if (!ok) return json({ error: 'Sign in required to use the shared key.' }, 401);
   }
 
+  // Optional server-side web search tool (for live event lookups).
+  const reqBody: Record<string, unknown> = {
+    model: model || 'claude-sonnet-4-6',
+    max_tokens: 4096,
+    system,
+    messages: [{ role: 'user', content: prompt }],
+  };
+  if (webSearch) {
+    reqBody.tools = [{ type: 'web_search_20250305', name: 'web_search', max_uses: 6 }];
+  }
+
   try {
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -67,12 +80,7 @@ Deno.serve(async (req) => {
         'anthropic-version': '2023-06-01',
         'content-type': 'application/json',
       },
-      body: JSON.stringify({
-        model: model || 'claude-sonnet-4-6',
-        max_tokens: 4096,
-        system,
-        messages: [{ role: 'user', content: prompt }],
-      }),
+      body: JSON.stringify(reqBody),
     });
 
     if (!resp.ok) {

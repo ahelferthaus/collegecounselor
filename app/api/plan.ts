@@ -39,11 +39,12 @@ export default async function handler(req: any, res: any) {
   }
 
   const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : req.body || {};
-  const { system, prompt, model, apiKey } = body as {
+  const { system, prompt, model, apiKey, webSearch } = body as {
     system?: string;
     prompt?: string;
     model?: string;
     apiKey?: string;
+    webSearch?: boolean;
   };
 
   if (!prompt || !system) {
@@ -75,8 +76,8 @@ export default async function handler(req: any, res: any) {
       options: {
         model: model || 'claude-sonnet-4-6',
         systemPrompt: system,
-        maxTurns: 1,
-        allowedTools: [],
+        maxTurns: webSearch ? 4 : 1,
+        allowedTools: webSearch ? ['WebSearch'] : [],
       },
     });
 

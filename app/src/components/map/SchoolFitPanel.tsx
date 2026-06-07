@@ -6,6 +6,7 @@ import {
   X,
   ExternalLink,
   CalendarDays,
+  CalendarClock,
   Compass,
   Globe,
   Video,
@@ -33,6 +34,14 @@ import {
   formatRange,
 } from '@/lib/fit';
 import { visitLinks } from '@/lib/visit';
+import {
+  type CampusEvent,
+  type EventType,
+  fetchEvents,
+  loadCachedEvents,
+  saveCachedEvents,
+  timeAgo,
+} from '@/lib/events';
 
 interface Props {
   school: School;
@@ -41,14 +50,24 @@ interface Props {
   onEdit: () => void;
 }
 
+const EVENT_BADGE: Record<EventType, { bg: string; fg: string }> = {
+  Virtual: { bg: '#EDE9FE', fg: '#6D28D9' },
+  'On-campus': { bg: '#CCFBF1', fg: '#0F766E' },
+  Other: { bg: '#F1F5F9', fg: '#475569' },
+};
+
 export function SchoolFitPanel({ school, stats, onClose, onEdit }: Props) {
   const [college, setCollege] = useState<CollegeData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [attempt, setAttempt] = useState(0);
 
-  // Fetch College Scorecard data (external system) for the selected school.
-  /* eslint-disable react-hooks/set-state-in-effect */
+  const [events, setEvents] = useState<CampusEvent[] | null>(null);
+  const [eventsAt, setEventsAt] = useState<number | null>(null);
+  const [eventsLoading, setEventsLoading] = useState(false);
+  const [eventsError, setEventsError] = useState<string | null>(null);
+
+  // Fetch College Scorecard data + load any cached events for this school.
   useEffect(() => {
     let active = true;
     setLoading(true);
@@ -61,7 +80,28 @@ export function SchoolFitPanel({ school, stats, onClose, onEdit }: Props) {
       active = false;
     };
   }, [school.name, attempt]);
-  /* eslint-enable react-hooks/set-state-in-effect */
+
+  useEffect(() => {
+    const cached = loadCachedEvents(school.id);
+    setEvents(cached?.events ?? null);
+    setEventsAt(cached?.fetchedAt ?? null);
+    setEventsError(null);
+  }, [school.id]);
+
+  async function findEvents() {
+    setEventsLoading(true);
+    setEventsError(null);
+    try {
+      const ev = await fetchEvents(school);
+      const cache = saveCachedEvents(school.id, ev);
+      setEvents(ev);
+      setEventsAt(cache.fetchedAt);
+    } catch (e) {
+      setEventsError(e instanceof Error ? e.message : 'Could not load events.');
+    } finally {
+      setEventsLoading(false);
+    }
+  }
 
   const fit = computeFit(stats, college);
   const bandStyle = BAND_STYLES[fit.band];
@@ -130,6 +170,80 @@ export function SchoolFitPanel({ school, stats, onClose, onEdit }: Props) {
               <LinkBtn href={links.site} icon={<Globe className="h-3.5 w-3.5" />} label="Official site" />
             )}
           </div>
+        </div>
+
+        {/* Upcoming events — live, on-demand via web search */}
+        <div className="mb-3">
+          <div className="mb-1.5 flex items-center justify-between">
+            <p className="flex items-center gap-1.5 text-xs font-semibold text-navy-800">
+              <CalendarClock className="h-3.5 w-3.5 text-purple-500" /> Upcoming events
+            </p>
+            <button
+              type="button"
+              onClick={findEvents}
+              disabled={eventsLoading}
+              className="flex items-center gap-1 text-xs font-medium text-purple-600 hover:text-purple-700 disabled:opacity-50"
+            >
+              {eventsLoading ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <RefreshCw className="h-3.5 w-3.5" />
+              )}
+              {events ? 'Refresh' : 'Find events'}
+            </button>
+          </div>
+
+          {eventsLoading && (
+            <p className="text-xs text-muted-foreground">Searching the web…</p>
+          )}
+          {eventsError && <p className="text-xs text-destructive">{eventsError}</p>}
+          {!eventsLoading && events && events.length === 0 && (
+            <p className="text-xs text-muted-foreground">
+              No upcoming events found — check the official events page above.
+            </p>
+          )}
+          {events && events.length > 0 && (
+            <ul className="space-y-1.5">
+              {events.map((e, i) => (
+                <li key={i} className="rounded-lg border border-border p-2">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="rounded-full px-1.5 py-0.5 text-[10px] font-bold"
+                      style={{
+                        backgroundColor: EVENT_BADGE[e.type].bg,
+                        color: EVENT_BADGE[e.type].fg,
+                      }}
+                    >
+                      {e.type}
+                    </span>
+                    {e.date && (
+                      <span className="text-[11px] text-muted-foreground">{e.date}</span>
+                    )}
+                  </div>
+                  <p className="mt-0.5 text-xs font-medium text-navy-900">{e.title}</p>
+                  {e.description && (
+                    <p className="text-[11px] text-muted-foreground">{e.description}</p>
+                  )}
+                  {e.url && (
+                    <a
+                      href={e.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-purple-600 hover:underline"
+                    >
+                      Register / details <ExternalLink className="h-3 w-3" />
+                    </a>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+          {events && events.length > 0 && eventsAt && (
+            <p className="mt-1 text-[10px] text-muted-foreground">
+              AI + web search · {timeAgo(eventsAt)} · always verify on the official
+              page
+            </p>
+          )}
         </div>
 
         {/* Visit scorecard summary (when rated) */}

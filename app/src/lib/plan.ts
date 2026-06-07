@@ -175,7 +175,11 @@ export class PlanError extends Error {}
  * Vercel/Agent SDK function, fall back to the Supabase Edge function) and
  * returns the raw assistant text. Used by both the plan and discover features.
  */
-export async function callAi(system: string, prompt: string): Promise<string> {
+export async function callAi(
+  system: string,
+  prompt: string,
+  opts?: { webSearch?: boolean },
+): Promise<string> {
   const byoKey = getAiKey() || undefined;
   const token = (await supabase?.auth.getSession())?.data.session?.access_token;
 
@@ -185,13 +189,24 @@ export async function callAi(system: string, prompt: string): Promise<string> {
     );
   }
 
-  const body = JSON.stringify({ system, prompt, model: MODEL, apiKey: byoKey });
+  const body = JSON.stringify({
+    system,
+    prompt,
+    model: MODEL,
+    apiKey: byoKey,
+    webSearch: opts?.webSearch ?? false,
+  });
 
-  const endpoints: { url: string; supabase: boolean }[] = [
-    { url: '/api/plan', supabase: false },
-  ];
-  if (SUPABASE_URL) {
-    endpoints.push({ url: `${SUPABASE_URL}/functions/v1/plan`, supabase: true });
+  const vercel = { url: '/api/plan', supabase: false };
+  const supa = { url: `${SUPABASE_URL}/functions/v1/plan`, supabase: true };
+  // Web search is most reliable via the Messages-API (Supabase) backend, so
+  // prefer it when searching; otherwise prefer the Vercel/Agent SDK path.
+  const endpoints: { url: string; supabase: boolean }[] = [];
+  if (opts?.webSearch && SUPABASE_URL) {
+    endpoints.push(supa, vercel);
+  } else {
+    endpoints.push(vercel);
+    if (SUPABASE_URL) endpoints.push(supa);
   }
 
   let lastError = 'No AI backend is available.';
