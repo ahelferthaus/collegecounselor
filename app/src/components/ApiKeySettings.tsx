@@ -20,7 +20,7 @@ import {
 import { cn } from '@/lib/utils';
 
 /** Button + dialog for managing optional personal API keys (device-only). */
-export function ApiKeySettings() {
+export function ApiKeySettings({ onSaved }: { onSaved?: () => void } = {}) {
   const [open, setOpen] = useState(false);
   const [aiValue, setAiValue] = useState('');
   const [scValue, setScValue] = useState('');
@@ -38,6 +38,7 @@ export function ApiKeySettings() {
     setScorecardKey(scValue.trim());
     setSaved(aiValue.trim().length > 0 || scValue.trim().length > 0);
     setOpen(false);
+    onSaved?.();
   }
 
   return (

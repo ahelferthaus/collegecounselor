@@ -36,6 +36,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { SyncMenu } from '@/components/map/SyncMenu';
+import { ApiKeySettings } from '@/components/ApiKeySettings';
 import { useAuth } from '@/hooks/useAuth';
 import { useSchools } from '@/hooks/useSchools';
 import { isSupabaseConfigured } from '@/lib/supabaseClient';
@@ -158,6 +159,7 @@ export function RankingsPage() {
           <Link to="/map" className="hidden items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-purple-600 hover:bg-purple-50 sm:flex">
             <Map className="h-4 w-4" /> Map
           </Link>
+          <ApiKeySettings onSaved={() => setAttempt((a) => a + 1)} />
           <SyncMenu
             configured={isSupabaseConfigured}
             email={email}
@@ -297,9 +299,26 @@ export function RankingsPage() {
                   <AlertCircle className="h-4 w-4" /> Couldn't load school data
                 </p>
                 <p className="mt-1">{error}</p>
-                <Button variant="outline" size="sm" className="mt-2" onClick={() => setAttempt((a) => a + 1)}>
-                  <RefreshCw className="mr-1.5 h-3.5 w-3.5" /> Retry
-                </Button>
+                <p className="mt-2 text-xs text-red-600/90">
+                  Rankings pull from the free U.S. College Scorecard API. The
+                  shared demo key is heavily rate-limited — add your own free key
+                  (instant signup at{' '}
+                  <a
+                    href="https://api.data.gov/signup/"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-medium underline"
+                  >
+                    api.data.gov/signup
+                  </a>
+                  ) using the key icon, then retry.
+                </p>
+                <div className="mt-2 flex items-center gap-2">
+                  <Button variant="outline" size="sm" onClick={() => setAttempt((a) => a + 1)}>
+                    <RefreshCw className="mr-1.5 h-3.5 w-3.5" /> Retry
+                  </Button>
+                  <ApiKeySettings onSaved={() => setAttempt((a) => a + 1)} />
+                </div>
               </div>
             ) : (
               <>
