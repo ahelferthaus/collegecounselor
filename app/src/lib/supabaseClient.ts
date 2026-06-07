@@ -4,11 +4,11 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 // in the browser — all data access is protected by row-level security so a user
 // can only ever read or write their own rows. Override via env vars if you fork
 // this to a different Supabase project.
-const SUPABASE_URL =
+export const SUPABASE_URL =
   (import.meta.env.VITE_SUPABASE_URL as string | undefined) ||
   'https://uglrlibycppkhtofwmht.supabase.co';
 
-const SUPABASE_ANON_KEY =
+export const SUPABASE_ANON_KEY =
   (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) ||
   'sb_publishable_p-e3UYMhT4pkhq06xDomuQ_IAkTdG38';
 
