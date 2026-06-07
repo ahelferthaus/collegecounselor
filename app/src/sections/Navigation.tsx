@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { MessageCircle, Menu, X } from 'lucide-react';
+import { MessageCircle, Menu, X, Map, UserRound, Sparkles, Compass, Trophy, Columns3, PiggyBank } from 'lucide-react';
 import { useWaitlist } from '@/context/WaitlistContext';
 
 const navLinks = [
@@ -69,6 +70,55 @@ export function Navigation() {
                   {link.label}
                 </button>
               ))}
+              <Link
+                to="/map"
+                className="flex items-center gap-1.5 text-sm font-medium text-purple-600 transition-colors hover:text-purple-700"
+              >
+                <Map className="w-4 h-4" />
+                Campus Map
+              </Link>
+              <Link
+                to="/discover"
+                className="flex items-center gap-1.5 text-sm font-medium text-purple-600 transition-colors hover:text-purple-700"
+              >
+                <Compass className="w-4 h-4" />
+                Discover
+              </Link>
+              <Link
+                to="/rankings"
+                className="flex items-center gap-1.5 text-sm font-medium text-purple-600 transition-colors hover:text-purple-700"
+              >
+                <Trophy className="w-4 h-4" />
+                Rankings
+              </Link>
+              <Link
+                to="/compare"
+                className="flex items-center gap-1.5 text-sm font-medium text-purple-600 transition-colors hover:text-purple-700"
+              >
+                <Columns3 className="w-4 h-4" />
+                Compare
+              </Link>
+              <Link
+                to="/profile"
+                className="flex items-center gap-1.5 text-sm font-medium text-purple-600 transition-colors hover:text-purple-700"
+              >
+                <UserRound className="w-4 h-4" />
+                My Profile
+              </Link>
+              <Link
+                to="/plan"
+                className="flex items-center gap-1.5 text-sm font-medium text-purple-600 transition-colors hover:text-purple-700"
+              >
+                <Sparkles className="w-4 h-4" />
+                My Plan
+              </Link>
+              <Link
+                to="/aid"
+                className="flex items-center gap-1.5 text-sm font-medium text-purple-600 transition-colors hover:text-purple-700"
+              >
+                <PiggyBank className="w-4 h-4" />
+                Financial Aid
+              </Link>
             </div>
 
             {/* Desktop CTA */}
@@ -133,8 +183,64 @@ export function Navigation() {
                 {link.label}
               </button>
             ))}
+            <Link
+              to="/map"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center gap-2 w-full text-left px-4 py-3 text-purple-600 font-medium hover:bg-purple-50 rounded-xl transition-colors"
+            >
+              <Map className="w-4 h-4" />
+              Campus Map
+            </Link>
+            <Link
+              to="/discover"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center gap-2 w-full text-left px-4 py-3 text-purple-600 font-medium hover:bg-purple-50 rounded-xl transition-colors"
+            >
+              <Compass className="w-4 h-4" />
+              Discover
+            </Link>
+            <Link
+              to="/rankings"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center gap-2 w-full text-left px-4 py-3 text-purple-600 font-medium hover:bg-purple-50 rounded-xl transition-colors"
+            >
+              <Trophy className="w-4 h-4" />
+              Rankings
+            </Link>
+            <Link
+              to="/compare"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center gap-2 w-full text-left px-4 py-3 text-purple-600 font-medium hover:bg-purple-50 rounded-xl transition-colors"
+            >
+              <Columns3 className="w-4 h-4" />
+              Compare
+            </Link>
+            <Link
+              to="/profile"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center gap-2 w-full text-left px-4 py-3 text-purple-600 font-medium hover:bg-purple-50 rounded-xl transition-colors"
+            >
+              <UserRound className="w-4 h-4" />
+              My Profile
+            </Link>
+            <Link
+              to="/plan"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center gap-2 w-full text-left px-4 py-3 text-purple-600 font-medium hover:bg-purple-50 rounded-xl transition-colors"
+            >
+              <Sparkles className="w-4 h-4" />
+              My Plan
+            </Link>
+            <Link
+              to="/aid"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center gap-2 w-full text-left px-4 py-3 text-purple-600 font-medium hover:bg-purple-50 rounded-xl transition-colors"
+            >
+              <PiggyBank className="w-4 h-4" />
+              Financial Aid
+            </Link>
           </div>
-          
+
           <div className="mt-6 pt-6 border-t border-gray-100 space-y-3">
             <Button
               variant="outline"

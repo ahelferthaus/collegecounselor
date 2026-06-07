@@ -1,58 +1,30 @@
-import { useEffect } from 'react';
+import { HashRouter, Route, Routes } from 'react-router-dom';
 import { Toaster } from 'sonner';
-import { Navigation } from './sections/Navigation';
-import { Hero } from './sections/Hero';
-import { LogoMarquee } from './sections/LogoMarquee';
-import { Features } from './sections/Features';
-import { HowItWorks } from './sections/HowItWorks';
-import { Testimonials } from './sections/Testimonials';
-import { Pricing } from './sections/Pricing';
-import { FAQ } from './sections/FAQ';
-import { CTA } from './sections/CTA';
-import { Footer } from './sections/Footer';
-import { WaitlistModal } from './components/WaitlistModal';
-import { WaitlistProvider } from './context/WaitlistContext';
+import { LandingPage } from './pages/LandingPage';
+import { CampusMapPage } from './pages/CampusMapPage';
+import { ProfilePage } from './pages/ProfilePage';
+import { PlanPage } from './pages/PlanPage';
+import { DiscoverPage } from './pages/DiscoverPage';
+import { RankingsPage } from './pages/RankingsPage';
+import { ComparePage } from './pages/ComparePage';
+import { AidPage } from './pages/AidPage';
 import './App.css';
 
 function App() {
-  useEffect(() => {
-    // Smooth scroll behavior
-    document.documentElement.style.scrollBehavior = 'smooth';
-
-    return () => {
-      document.documentElement.style.scrollBehavior = 'auto';
-    };
-  }, []);
-
   return (
-    <WaitlistProvider>
-      <div className="min-h-screen bg-white">
-        <Navigation />
-        <main>
-          <Hero />
-          <LogoMarquee />
-          <section id="features">
-            <Features />
-          </section>
-          <section id="how-it-works">
-            <HowItWorks />
-          </section>
-          <section id="testimonials">
-            <Testimonials />
-          </section>
-          <section id="pricing">
-            <Pricing />
-          </section>
-          <section id="faq">
-            <FAQ />
-          </section>
-          <CTA />
-        </main>
-        <Footer />
-        <WaitlistModal />
-        <Toaster position="bottom-right" richColors />
-      </div>
-    </WaitlistProvider>
+    <HashRouter>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/map" element={<CampusMapPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/plan" element={<PlanPage />} />
+        <Route path="/discover" element={<DiscoverPage />} />
+        <Route path="/rankings" element={<RankingsPage />} />
+        <Route path="/compare" element={<ComparePage />} />
+        <Route path="/aid" element={<AidPage />} />
+      </Routes>
+      <Toaster position="bottom-right" richColors />
+    </HashRouter>
   );
 }
 
