@@ -15,6 +15,7 @@ import {
   metricsAverage,
 } from '@/lib/schools';
 import { type CollegeData, lookupCollege } from '@/lib/scorecard';
+import { getReputation } from '@/lib/reputation';
 import { cn } from '@/lib/utils';
 
 type Better = 'high' | 'low' | 'none';
@@ -181,7 +182,14 @@ export function ComparePage() {
                 </Group>
               ))}
 
-              <GroupHeader span={cols.length + 1}>College data (Scorecard)</GroupHeader>
+              <GroupHeader span={cols.length + 1}>Reputation & college data</GroupHeader>
+              <Row
+                label="Published rank"
+                cols={cols}
+                getVal={(s) => getReputation(s.name)?.rank ?? null}
+                better="low"
+                fmt={(v) => `#${v}`}
+              />
               <Row
                 label="Admit rate"
                 cols={cols}

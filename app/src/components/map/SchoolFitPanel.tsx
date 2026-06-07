@@ -34,6 +34,7 @@ import {
   formatRange,
 } from '@/lib/fit';
 import { visitLinks } from '@/lib/visit';
+import { getReputation } from '@/lib/reputation';
 import {
   type CampusEvent,
   type EventType,
@@ -120,6 +121,17 @@ export function SchoolFitPanel({ school, stats, onClose, onEdit }: Props) {
               {school.name}
             </h2>
             <QualityBadge quality={school.quality} />
+            {(() => {
+              const rep = getReputation(school.name);
+              return rep ? (
+                <span
+                  className="rounded-full bg-navy-600 px-1.5 py-0.5 text-[10px] font-bold text-white"
+                  title={`${rep.kind} reputation rank`}
+                >
+                  #{rep.rank}
+                </span>
+              ) : null;
+            })()}
           </div>
           {school.location && (
             <p className="truncate text-xs text-muted-foreground">
