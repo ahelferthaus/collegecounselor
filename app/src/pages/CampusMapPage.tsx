@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ChevronLeft,
@@ -28,9 +28,12 @@ import {
 import { MapView, type MapRegion, type MapViewHandle } from '@/components/map/MapView';
 import { SchoolList } from '@/components/map/SchoolList';
 import { SchoolForm, type FormSeed } from '@/components/map/SchoolForm';
+import { SchoolFitPanel } from '@/components/map/SchoolFitPanel';
 import { SyncMenu } from '@/components/map/SyncMenu';
 import { useSchools, type NewSchool } from '@/hooks/useSchools';
 import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
+import { deriveStats } from '@/lib/fit';
 import { isSupabaseConfigured } from '@/lib/supabaseClient';
 import { type School, QUALITY_COLORS } from '@/lib/schools';
 import { cn } from '@/lib/utils';
@@ -48,6 +51,8 @@ export function CampusMapPage() {
     clearAll,
     importSchools,
   } = useSchools(userId);
+  const { profile } = useProfile(userId);
+  const studentStats = useMemo(() => deriveStats(profile), [profile]);
 
   const mapRef = useRef<MapViewHandle>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -58,6 +63,8 @@ export function CampusMapPage() {
   const [mobileListOpen, setMobileListOpen] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [formSeed, setFormSeed] = useState<FormSeed | null>(null);
+
+  const selectedSchool = schools.find((s) => s.id === selectedId) ?? null;
 
   function focusSchool(id: string) {
     const s = schools.find((x) => x.id === id);
@@ -232,6 +239,14 @@ export function CampusMapPage() {
       <div className="flex min-h-0 flex-1">
         {/* Desktop sidebar */}
         <aside className="hidden w-96 shrink-0 flex-col border-r border-border lg:flex">
+          {selectedSchool && (
+            <SchoolFitPanel
+              school={selectedSchool}
+              stats={studentStats}
+              onClose={() => setSelectedId(null)}
+              onEdit={() => openEditForm(selectedSchool)}
+            />
+          )}
           <SchoolList
             schools={schools}
             selectedId={selectedId}
@@ -341,6 +356,14 @@ export function CampusMapPage() {
               Your schools ({schools.length})
             </DrawerTitle>
           </DrawerHeader>
+          {selectedSchool && (
+            <SchoolFitPanel
+              school={selectedSchool}
+              stats={studentStats}
+              onClose={() => setSelectedId(null)}
+              onEdit={() => openEditForm(selectedSchool)}
+            />
+          )}
           <div className="min-h-0 flex-1 overflow-hidden">
             <SchoolList
               schools={schools}
