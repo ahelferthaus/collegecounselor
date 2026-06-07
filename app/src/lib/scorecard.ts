@@ -64,6 +64,48 @@ function num(v: unknown): number | null {
   return typeof v === 'number' && !Number.isNaN(v) ? v : null;
 }
 
+const usingDemoKey = () => apiKey() === 'DEMO_KEY';
+
+// Fetch with backoff on rate-limit / transient errors, and friendly messages
+// for the cases users actually hit (the shared DEMO_KEY getting throttled, or
+// a bad personal key). Retries help because DEMO_KEY 429s are often transient.
+async function fetchJson(url: string, label: string, retries = 3): Promise<unknown> {
+  for (let i = 0; ; i++) {
+    let res: Response;
+    try {
+      res = await fetch(url);
+    } catch (e) {
+      // Network blip — retry a couple of times before giving up.
+      if (i < retries) {
+        await new Promise((r) => setTimeout(r, 600 * 2 ** i));
+        continue;
+      }
+      throw e instanceof Error ? e : new Error(`${label}: network error`);
+    }
+
+    if (res.ok) return res.json();
+
+    if ((res.status === 429 || res.status >= 500) && i < retries) {
+      await new Promise((r) => setTimeout(r, 600 * 2 ** i));
+      continue;
+    }
+
+    if (res.status === 429) {
+      throw new Error(
+        usingDemoKey()
+          ? `${label}: the shared demo data key is rate-limited. Add a free College Scorecard key (it's instant) to fix this.`
+          : `${label}: rate-limited (429). Wait a minute and retry.`,
+      );
+    }
+    if (res.status === 403) {
+      throw new Error(
+        `${label}: the College Scorecard key was rejected (403). Check the key — get a free one at api.data.gov/signup.`,
+      );
+    }
+    throw new Error(`${label} failed (${res.status})`);
+  }
+}
+
 function toCollege(r: Record<string, unknown>): CollegeData {
   return {
     id: (num(pick(r, 'id')) ?? 0) as number,
@@ -99,11 +141,9 @@ export async function lookupCollege(name: string): Promise<CollegeData | null> {
     `&school.name=${encodeURIComponent(cleanName(name))}` +
     `&fields=${FIELDS}&per_page=1&sort=latest.student.size:desc`;
 
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Scorecard lookup failed (${res.status})`);
-  const data = await res.json();
+  const data = (await fetchJson(url, 'Scorecard lookup')) as { results?: unknown[] };
   const first = Array.isArray(data?.results) ? data.results[0] : null;
-  const college = first ? toCollege(first) : null;
+  const college = first ? toCollege(first as Record<string, unknown>) : null;
   cache.set(key, college);
   return college;
 }
@@ -195,11 +235,9 @@ export async function fetchSchoolPool(limit = 200): Promise<RankCollege[]> {
       `&fields=${POOL_FIELDS}` +
       `&sort=latest.completion.completion_rate_4yr_150nt:desc` +
       `&per_page=${perPage}&page=${page}`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`Scorecard pool failed (${res.status})`);
-    const data = await res.json();
+    const data = (await fetchJson(url, 'Scorecard pool')) as { results?: unknown[] };
     const results = Array.isArray(data?.results) ? data.results : [];
-    for (const r of results) out.push(toRankCollege(r));
+    for (const r of results) out.push(toRankCollege(r as Record<string, unknown>));
     if (results.length < perPage) break;
   }
   return out.slice(0, limit);
