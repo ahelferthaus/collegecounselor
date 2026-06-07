@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Loader2, MapPin, Search, Trash2 } from 'lucide-react';
+import { Loader2, MapPin, Search, Trash2, ChevronDown } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -20,6 +20,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { RatingStars } from './RatingStars';
 import {
   type GeocodeResult,
@@ -27,9 +32,14 @@ import {
   type School,
   type Status,
   STATUS_LABELS,
+  VISIT_METRICS,
+  METRIC_CATEGORIES,
+  metricsAverage,
+  countRatedMetrics,
   geocode,
 } from '@/lib/schools';
 import type { NewSchool } from '@/hooks/useSchools';
+import { cn } from '@/lib/utils';
 
 export interface FormSeed {
   school?: School; // editing an existing school
@@ -66,6 +76,8 @@ export function SchoolForm({
   const [quality, setQuality] = useState<Quality | null>(null);
   const [status, setStatus] = useState<Status>('considering');
   const [notes, setNotes] = useState('');
+  const [metrics, setMetrics] = useState<Record<string, number>>({});
+  const [scorecardOpen, setScorecardOpen] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [results, setResults] = useState<GeocodeResult[]>([]);
@@ -83,6 +95,7 @@ export function SchoolForm({
       setQuality(editing.quality);
       setStatus(editing.status);
       setNotes(editing.notes);
+      setMetrics(editing.metrics ?? {});
       setSearchQuery(editing.name);
     } else {
       setName('');
@@ -96,11 +109,22 @@ export function SchoolForm({
       setQuality(null);
       setStatus('considering');
       setNotes('');
+      setMetrics({});
       setSearchQuery('');
     }
+    setScorecardOpen(false);
     setResults([]);
     setSearchError(null);
   }, [open, seed, editing]);
+
+  function setMetric(key: string, value: number) {
+    setMetrics((prev) => {
+      const next = { ...prev };
+      if (value > 0) next[key] = value;
+      else delete next[key];
+      return next;
+    });
+  }
 
   async function runSearch() {
     const q = searchQuery.trim() || name.trim();
@@ -136,6 +160,7 @@ export function SchoolForm({
       quality,
       status,
       notes: notes.trim(),
+      metrics,
     });
     onOpenChange(false);
   }
@@ -275,15 +300,68 @@ export function SchoolForm({
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="school-notes">Notes</Label>
+            <Label htmlFor="school-notes">Visit notes</Label>
             <Textarea
               id="school-notes"
               value={notes}
-              placeholder="Tour dates, programs, impressions…"
+              placeholder="Tour dates, who you met, programs, first impressions…"
               rows={3}
               onChange={(e) => setNotes(e.target.value)}
             />
           </div>
+
+          {/* Visit scorecard — 1-5 across academic → social → campus → practical */}
+          <Collapsible open={scorecardOpen} onOpenChange={setScorecardOpen}>
+            <CollapsibleTrigger asChild>
+              <button
+                type="button"
+                className="flex w-full items-center justify-between rounded-lg border border-border px-3 py-2.5 text-left transition-colors hover:bg-muted/50"
+              >
+                <span className="text-sm font-medium text-navy-900">
+                  Visit scorecard{' '}
+                  <span className="font-normal text-muted-foreground">(rate 1–5)</span>
+                </span>
+                <span className="flex items-center gap-2 text-xs text-muted-foreground">
+                  {countRatedMetrics(metrics) > 0 && (
+                    <span className="font-medium text-purple-600">
+                      avg {metricsAverage(metrics).toFixed(1)} ·{' '}
+                      {countRatedMetrics(metrics)}/{VISIT_METRICS.length}
+                    </span>
+                  )}
+                  <ChevronDown
+                    className={cn(
+                      'h-4 w-4 transition-transform',
+                      scorecardOpen && 'rotate-180',
+                    )}
+                  />
+                </span>
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-4 pt-3">
+              {METRIC_CATEGORIES.map((cat) => (
+                <div key={cat}>
+                  <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    {cat}
+                  </p>
+                  <div className="space-y-1">
+                    {VISIT_METRICS.filter((m) => m.category === cat).map((m) => (
+                      <div
+                        key={m.key}
+                        className="flex items-center justify-between gap-3 rounded-md px-1 py-1"
+                      >
+                        <span className="text-sm text-navy-800">{m.label}</span>
+                        <RatingStars
+                          value={metrics[m.key] ?? 0}
+                          onChange={(v) => setMetric(m.key, v)}
+                          size={16}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </CollapsibleContent>
+          </Collapsible>
         </div>
 
         <DialogFooter className="gap-2 sm:justify-between">

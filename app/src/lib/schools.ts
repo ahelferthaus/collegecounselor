@@ -12,11 +12,64 @@ export interface School {
   location: string; // human-readable "City, Country"
   lat: number;
   lng: number;
-  ranking: number; // 1-5 (0 = unranked)
+  ranking: number; // 1-5 (0 = unranked) — overall
   quality: Quality | null; // A-C (null = ungraded)
   status: Status;
   notes: string;
+  metrics: Record<string, number>; // per-metric visit scores 1-5
   createdAt: number;
+}
+
+// Visit scorecard: rate each campus 1-5 across these metrics, grouped by area.
+export interface VisitMetric {
+  key: string;
+  label: string;
+  category: string;
+}
+
+export const METRIC_CATEGORIES = [
+  'Academic',
+  'Social',
+  'Campus Life',
+  'Practical',
+] as const;
+
+export const VISIT_METRICS: VisitMetric[] = [
+  { key: 'academics', label: 'Academics & rigor', category: 'Academic' },
+  { key: 'major', label: 'Strength in my major', category: 'Academic' },
+  { key: 'teaching', label: 'Professors & class size', category: 'Academic' },
+  { key: 'advising', label: 'Advising & support', category: 'Academic' },
+  { key: 'social', label: 'Social life & student body', category: 'Social' },
+  { key: 'clubs', label: 'Clubs & activities', category: 'Social' },
+  { key: 'spirit', label: 'School spirit & athletics', category: 'Social' },
+  { key: 'inclusion', label: 'Diversity & inclusion', category: 'Social' },
+  { key: 'campus', label: 'Campus & facilities', category: 'Campus Life' },
+  { key: 'housing', label: 'Housing / dorms', category: 'Campus Life' },
+  { key: 'dining', label: 'Dining / food', category: 'Campus Life' },
+  { key: 'location', label: 'Location & town', category: 'Campus Life' },
+  { key: 'safety', label: 'Safety', category: 'Campus Life' },
+  { key: 'cost', label: 'Cost & value', category: 'Practical' },
+  { key: 'career', label: 'Career outcomes', category: 'Practical' },
+  { key: 'feel', label: 'Overall vibe — could I see myself here?', category: 'Practical' },
+];
+
+export function metricsAverage(m: Record<string, number>): number {
+  const vals = Object.values(m ?? {}).filter((v) => v > 0);
+  return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
+}
+
+export function categoryAverage(
+  m: Record<string, number>,
+  category: string,
+): number {
+  const vals = VISIT_METRICS.filter((x) => x.category === category)
+    .map((x) => (m ?? {})[x.key])
+    .filter((v) => v > 0);
+  return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
+}
+
+export function countRatedMetrics(m: Record<string, number>): number {
+  return Object.values(m ?? {}).filter((v) => v > 0).length;
 }
 
 export const STORAGE_KEY = 'cc_campus_map_schools_v1';
@@ -61,7 +114,9 @@ export function loadSchools(): School[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter(isValidSchool);
+    return parsed
+      .filter(isValidSchool)
+      .map((s) => ({ ...s, metrics: s.metrics ?? {} }));
   } catch {
     return [];
   }
@@ -100,6 +155,7 @@ export function sampleSchools(): School[] {
       quality: 'A',
       status: 'visiting',
       notes: 'Strong CS + entrepreneurship. Tour booked.',
+      metrics: {},
     },
     {
       name: 'Massachusetts Institute of Technology',
@@ -110,6 +166,7 @@ export function sampleSchools(): School[] {
       quality: 'A',
       status: 'considering',
       notes: 'Reach school. Check engineering programs.',
+      metrics: {},
     },
     {
       name: 'University of Michigan',
@@ -120,6 +177,13 @@ export function sampleSchools(): School[] {
       quality: 'B',
       status: 'visited',
       notes: 'Big campus, great vibe. Liked the dorms.',
+      // Example of a completed visit scorecard.
+      metrics: {
+        academics: 4, major: 4, teaching: 4, advising: 3,
+        social: 5, clubs: 5, spirit: 5, inclusion: 4,
+        campus: 5, housing: 4, dining: 4, location: 4, safety: 4,
+        cost: 3, career: 4, feel: 5,
+      },
     },
     {
       name: 'University of Oxford',
@@ -130,6 +194,7 @@ export function sampleSchools(): School[] {
       quality: 'A',
       status: 'considering',
       notes: 'Collegiate system. Tutorial-style teaching.',
+      metrics: {},
     },
     {
       name: 'ETH Zürich',
@@ -140,6 +205,7 @@ export function sampleSchools(): School[] {
       quality: 'A',
       status: 'visiting',
       notes: 'Top European STEM. Affordable tuition.',
+      metrics: {},
     },
     {
       name: 'Bocconi University',
@@ -150,6 +216,7 @@ export function sampleSchools(): School[] {
       quality: 'B',
       status: 'considering',
       notes: 'Business/economics focus. Great city.',
+      metrics: {},
     },
   ];
   return base.map((b, i) => ({

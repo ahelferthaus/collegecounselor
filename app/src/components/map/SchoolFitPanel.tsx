@@ -13,7 +13,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { RatingStars } from './RatingStars';
 import { QualityBadge } from './QualityBadge';
-import { type School } from '@/lib/schools';
+import {
+  type School,
+  METRIC_CATEGORIES,
+  categoryAverage,
+  countRatedMetrics,
+  metricsAverage,
+} from '@/lib/schools';
 import {
   type CollegeData,
   OWNERSHIP_LABEL,
@@ -63,6 +69,7 @@ export function SchoolFitPanel({ school, stats, onClose, onEdit }: Props) {
   const actRange = college && formatRange(college.act25, college.act75);
   const noProfile = stats.gpa === 0 && !stats.sat && !stats.act;
   const links = visitLinks(school, college);
+  const ratedCount = countRatedMetrics(school.metrics);
 
   return (
     <div className="flex max-h-[58%] shrink-0 flex-col border-b border-border bg-white">
@@ -124,6 +131,43 @@ export function SchoolFitPanel({ school, stats, onClose, onEdit }: Props) {
             )}
           </div>
         </div>
+
+        {/* Visit scorecard summary (when rated) */}
+        {ratedCount > 0 && (
+          <div className="mb-3 rounded-xl border border-border p-3">
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-xs font-semibold text-navy-800">Your visit ratings</p>
+              <div className="flex items-center gap-1.5">
+                <RatingStars value={Math.round(metricsAverage(school.metrics))} size={13} />
+                <span className="text-xs font-bold text-navy-900">
+                  {metricsAverage(school.metrics).toFixed(1)}
+                </span>
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              {METRIC_CATEGORIES.map((cat) => {
+                const avg = categoryAverage(school.metrics, cat);
+                if (avg === 0) return null;
+                return (
+                  <div key={cat} className="flex items-center gap-2">
+                    <span className="w-24 shrink-0 text-[11px] text-muted-foreground">
+                      {cat}
+                    </span>
+                    <div className="h-1.5 flex-1 rounded-full bg-muted">
+                      <div
+                        className="h-1.5 rounded-full bg-gradient-purple-teal"
+                        style={{ width: `${(avg / 5) * 100}%` }}
+                      />
+                    </div>
+                    <span className="w-6 shrink-0 text-right text-[11px] font-medium text-navy-700">
+                      {avg.toFixed(1)}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {loading ? (
           <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">

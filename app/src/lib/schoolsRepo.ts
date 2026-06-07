@@ -14,6 +14,7 @@ interface SchoolRow {
   quality: Quality | null;
   status: Status;
   notes: string;
+  metrics: Record<string, number> | null;
   created_at: string;
 }
 
@@ -28,6 +29,7 @@ function rowToSchool(r: SchoolRow): School {
     quality: r.quality ?? null,
     status: r.status ?? 'considering',
     notes: r.notes ?? '',
+    metrics: r.metrics ?? {},
     createdAt: r.created_at ? Date.parse(r.created_at) : Date.now(),
   };
 }
@@ -43,6 +45,7 @@ function toRowFields(data: NewSchool, userId: string) {
     quality: data.quality,
     status: data.status,
     notes: data.notes,
+    metrics: data.metrics,
   };
 }
 

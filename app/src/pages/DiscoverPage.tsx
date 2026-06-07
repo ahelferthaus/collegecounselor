@@ -94,6 +94,7 @@ export function DiscoverPage() {
         quality: null,
         status: 'considering',
         notes: s.reason,
+        metrics: {},
       });
       setAdded((prev) => new Set(prev).add(s.name.toLowerCase().trim()));
       toast.success(`Added ${s.name} to your Campus Map`);

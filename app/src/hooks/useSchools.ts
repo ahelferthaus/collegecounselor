@@ -30,6 +30,7 @@ function toNew(s: School): NewSchool {
     quality: s.quality,
     status: s.status,
     notes: s.notes,
+    metrics: s.metrics ?? {},
   };
 }
 
