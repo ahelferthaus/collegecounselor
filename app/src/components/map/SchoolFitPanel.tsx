@@ -1,5 +1,15 @@
 import { useEffect, useState } from 'react';
-import { Loader2, Pencil, RefreshCw, X, ExternalLink } from 'lucide-react';
+import {
+  Loader2,
+  Pencil,
+  RefreshCw,
+  X,
+  ExternalLink,
+  CalendarDays,
+  Compass,
+  Globe,
+  Video,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { RatingStars } from './RatingStars';
 import { QualityBadge } from './QualityBadge';
@@ -16,6 +26,7 @@ import {
   formatMoney,
   formatRange,
 } from '@/lib/fit';
+import { visitLinks } from '@/lib/visit';
 
 interface Props {
   school: School;
@@ -51,6 +62,7 @@ export function SchoolFitPanel({ school, stats, onClose, onEdit }: Props) {
   const satRange = college && formatRange(college.sat25, college.sat75);
   const actRange = college && formatRange(college.act25, college.act75);
   const noProfile = stats.gpa === 0 && !stats.sat && !stats.act;
+  const links = visitLinks(school, college);
 
   return (
     <div className="flex max-h-[58%] shrink-0 flex-col border-b border-border bg-white">
@@ -96,6 +108,21 @@ export function SchoolFitPanel({ school, stats, onClose, onEdit }: Props) {
           >
             {bandStyle.label}
           </span>
+        </div>
+
+        {/* Visit & events — reliable deep-links (works even without a data match) */}
+        <div className="mb-3">
+          <p className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-navy-800">
+            <CalendarDays className="h-3.5 w-3.5 text-purple-500" /> Visit & events
+          </p>
+          <div className="grid grid-cols-2 gap-1.5">
+            <LinkBtn href={links.visit} icon={<Compass className="h-3.5 w-3.5" />} label="Book a visit/tour" />
+            <LinkBtn href={links.events} icon={<CalendarDays className="h-3.5 w-3.5" />} label="Register for events" />
+            <LinkBtn href={links.virtualTour} icon={<Video className="h-3.5 w-3.5" />} label="Virtual tour" />
+            {links.site && (
+              <LinkBtn href={links.site} icon={<Globe className="h-3.5 w-3.5" />} label="Official site" />
+            )}
+          </div>
         </div>
 
         {loading ? (
@@ -177,6 +204,28 @@ export function SchoolFitPanel({ school, stats, onClose, onEdit }: Props) {
         )}
       </div>
     </div>
+  );
+}
+
+function LinkBtn({
+  href,
+  icon,
+  label,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  label: string;
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-2 text-xs font-medium text-navy-700 transition-colors hover:border-purple-300 hover:bg-purple-50"
+    >
+      <span className="shrink-0 text-purple-500">{icon}</span>
+      <span className="truncate">{label}</span>
+    </a>
   );
 }
 

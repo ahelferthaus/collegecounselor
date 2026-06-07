@@ -54,7 +54,7 @@ Return ONLY valid JSON (no markdown, no prose outside JSON) matching exactly:
   ]
 }`;
 
-function profileText(p: StudentProfile): string {
+export function profileText(p: StudentProfile): string {
   const gpa = computeGpa(p.academics.courses);
   const lines: string[] = [];
   lines.push(
@@ -170,12 +170,12 @@ export function parsePlan(text: string): PlanResult {
 
 export class PlanError extends Error {}
 
-/** Calls the available AI backend and returns a parsed plan. */
-export async function generatePlan(
-  profile: StudentProfile,
-  schools: School[],
-): Promise<PlanResult> {
-  const { system, prompt } = buildPrompt(profile, schools);
+/**
+ * Shared AI call — gathers auth/key, tries the available backends (prefer the
+ * Vercel/Agent SDK function, fall back to the Supabase Edge function) and
+ * returns the raw assistant text. Used by both the plan and discover features.
+ */
+export async function callAi(system: string, prompt: string): Promise<string> {
   const byoKey = getAiKey() || undefined;
   const token = (await supabase?.auth.getSession())?.data.session?.access_token;
 
@@ -187,7 +187,6 @@ export async function generatePlan(
 
   const body = JSON.stringify({ system, prompt, model: MODEL, apiKey: byoKey });
 
-  // Prefer the Vercel/Agent SDK function (relative), then Supabase Edge.
   const endpoints: { url: string; supabase: boolean }[] = [
     { url: '/api/plan', supabase: false },
   ];
@@ -214,10 +213,19 @@ export async function generatePlan(
         lastError = data.error || `Backend error (${res.status}).`;
         continue;
       }
-      return parsePlan(data.text ?? '');
+      return (data.text as string) ?? '';
     } catch (e) {
       lastError = e instanceof Error ? e.message : String(e);
     }
   }
   throw new PlanError(lastError);
+}
+
+/** Generates and parses a personalized improvement plan. */
+export async function generatePlan(
+  profile: StudentProfile,
+  schools: School[],
+): Promise<PlanResult> {
+  const { system, prompt } = buildPrompt(profile, schools);
+  return parsePlan(await callAi(system, prompt));
 }

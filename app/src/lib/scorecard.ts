@@ -20,6 +20,7 @@ export interface CollegeData {
   act75: number | null;
   avgNetPrice: number | null;
   costOfAttendance: number | null;
+  schoolUrl: string | null;
 }
 
 const FIELDS = [
@@ -36,6 +37,7 @@ const FIELDS = [
   'latest.admissions.act_scores.75th_percentile.cumulative',
   'latest.cost.avg_net_price.overall',
   'latest.cost.attendance.academic_year',
+  'school.school_url',
 ].join(',');
 
 // The API may return either nested objects or flat dotted keys depending on
@@ -67,6 +69,7 @@ function toCollege(r: Record<string, unknown>): CollegeData {
     act75: num(pick(r, 'latest.admissions.act_scores.75th_percentile.cumulative')),
     avgNetPrice: num(pick(r, 'latest.cost.avg_net_price.overall')),
     costOfAttendance: num(pick(r, 'latest.cost.attendance.academic_year')),
+    schoolUrl: (pick(r, 'school.school_url') as string) || null,
   };
 }
 

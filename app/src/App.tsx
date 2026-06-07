@@ -4,6 +4,7 @@ import { LandingPage } from './pages/LandingPage';
 import { CampusMapPage } from './pages/CampusMapPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { PlanPage } from './pages/PlanPage';
+import { DiscoverPage } from './pages/DiscoverPage';
 import './App.css';
 
 function App() {
@@ -14,6 +15,7 @@ function App() {
         <Route path="/map" element={<CampusMapPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/plan" element={<PlanPage />} />
+        <Route path="/discover" element={<DiscoverPage />} />
       </Routes>
       <Toaster position="bottom-right" richColors />
     </HashRouter>
