@@ -12,13 +12,22 @@ import {
   RotateCcw,
   AlertCircle,
   SlidersHorizontal,
+  Upload,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   Select,
   SelectContent,
@@ -45,6 +54,12 @@ import {
   rankSchools,
   savePrefs,
 } from '@/lib/ranking';
+import {
+  clearReputationImport,
+  getReputation,
+  importReputation,
+  reputationImportCount,
+} from '@/lib/reputation';
 import { cn } from '@/lib/utils';
 
 export function RankingsPage() {
@@ -60,6 +75,11 @@ export function RankingsPage() {
   const [weights, setWeights] = useState<RankWeights>(initial.weights);
   const [filters, setFilters] = useState<RankFilters>(initial.filters);
   const [added, setAdded] = useState<Set<string>>(new Set());
+
+  const [importOpen, setImportOpen] = useState(false);
+  const [importText, setImportText] = useState('');
+  const [repCount, setRepCount] = useState(reputationImportCount());
+  const [repVersion, setRepVersion] = useState(0);
 
   // Load the school pool once (and on retry).
   /* eslint-disable react-hooks/set-state-in-effect */
@@ -81,10 +101,10 @@ export function RankingsPage() {
     savePrefs(weights, filters);
   }, [weights, filters]);
 
-  const ranked = useMemo(
-    () => rankSchools(pool, weights, filters),
-    [pool, weights, filters],
-  );
+  const ranked = useMemo(() => {
+    void repVersion; // recompute after a reputation import
+    return rankSchools(pool, weights, filters);
+  }, [pool, weights, filters, repVersion]);
 
   const existingNames = useMemo(
     () => new Set(schools.map((s) => s.name.toLowerCase().trim())),
@@ -245,6 +265,24 @@ export function RankingsPage() {
                 </p>
               )}
             </div>
+
+            <div className="rounded-2xl border border-border bg-white p-4">
+              <p className="text-sm font-semibold text-navy-900">Reputation data</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {repCount > 0
+                  ? `${repCount} schools imported`
+                  : 'Using the built-in starter set'}{' '}
+                — powers the “Reputation” weight.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-2 w-full"
+                onClick={() => setImportOpen(true)}
+              >
+                <Upload className="mr-1.5 h-3.5 w-3.5" /> Import your rankings
+              </Button>
+            </div>
           </aside>
 
           {/* Results */}
@@ -281,6 +319,17 @@ export function RankingsPage() {
                           <div className="min-w-0 flex-1">
                             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                               <span className="font-semibold text-navy-900">{c.name}</span>
+                              {(() => {
+                                const rep = getReputation(c.name);
+                                return rep ? (
+                                  <span
+                                    className="rounded-full bg-navy-600 px-1.5 py-0.5 text-[10px] font-bold text-white"
+                                    title={`${rep.kind} reputation rank`}
+                                  >
+                                    #{rep.rank}
+                                  </span>
+                                ) : null;
+                              })()}
                               {attrs.med && <Tag>Med</Tag>}
                               {attrs.law && <Tag>Law</Tag>}
                               {attrs.sports && <Tag>D1</Tag>}
@@ -330,6 +379,61 @@ export function RankingsPage() {
           </section>
         </div>
       </main>
+
+      <Dialog open={importOpen} onOpenChange={setImportOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-heading">Import published rankings</DialogTitle>
+          </DialogHeader>
+          <p className="text-xs text-muted-foreground">
+            Paste one school per line with its rank — e.g. <em>1. Princeton
+            University</em>. Stored only in your browser and used as the
+            “Reputation” signal in your ranking. Keep proprietary lists private;
+            don’t republish them.
+          </p>
+          <Textarea
+            rows={9}
+            value={importText}
+            placeholder={'1. Princeton University\n2. MIT\n3. Harvard University\n…'}
+            onChange={(e) => setImportText(e.target.value)}
+          />
+          <DialogFooter className="sm:justify-between">
+            {repCount > 0 ? (
+              <Button
+                variant="ghost"
+                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                onClick={() => {
+                  clearReputationImport();
+                  setRepCount(0);
+                  setRepVersion((v) => v + 1);
+                }}
+              >
+                Clear imported
+              </Button>
+            ) : (
+              <span />
+            )}
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setImportOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  const n = importReputation(importText);
+                  setRepCount(reputationImportCount());
+                  setRepVersion((v) => v + 1);
+                  setImportText('');
+                  setImportOpen(false);
+                  toast.success(`Imported ${n} schools`);
+                }}
+                className="bg-gradient-purple-teal text-white hover:opacity-90"
+              >
+                Import
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

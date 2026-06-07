@@ -3,18 +3,21 @@
 // graduation, and outcomes), but every weight and filter is user-adjustable.
 // This is a PUBLIC-DATA PROXY — it is not US News and makes no claim to match it.
 import type { RankCollege } from './scorecard';
+import { reputationScore } from './reputation';
 
 export interface RankWeights {
   academics: number; // selectivity + test strength
   graduation: number; // completion + retention
   outcomes: number; // earnings 10yr
+  reputation: number; // published rank (seed + your import)
   affordability: number; // low net price
 }
 
 export const DEFAULT_WEIGHTS: RankWeights = {
-  academics: 40,
-  graduation: 35,
-  outcomes: 25,
+  academics: 30,
+  graduation: 25,
+  outcomes: 20,
+  reputation: 25,
   affordability: 0,
 };
 
@@ -22,6 +25,7 @@ export const WEIGHT_LABELS: Record<keyof RankWeights, string> = {
   academics: 'Academics & selectivity',
   graduation: 'Graduation & retention',
   outcomes: 'Career outcomes (earnings)',
+  reputation: 'Reputation (published rank)',
   affordability: 'Affordability (low net price)',
 };
 
@@ -143,8 +147,11 @@ export function rankSchools(
   const normPrice = normalizer(pool.map((c) => c.netPrice ?? NaN));
 
   const wsum =
-    weights.academics + weights.graduation + weights.outcomes + weights.affordability ||
-    1;
+    weights.academics +
+      weights.graduation +
+      weights.outcomes +
+      weights.reputation +
+      weights.affordability || 1;
 
   const scored = pool.map((c) => {
     const selectivity = c.admitRate != null ? 1 - c.admitRate : 0.5;
@@ -156,11 +163,16 @@ export function rankSchools(
         : 0.5;
     const outcomes = normEarn(c.earnings);
     const affordability = 1 - normPrice(c.netPrice);
+    // Reputation from published rank (your import or starter seed); neutral when
+    // a school isn't on the list so it isn't unduly penalized.
+    const rep = reputationScore(c.name);
+    const reputation = rep == null ? 0.4 : rep;
 
     const score =
       ((weights.academics * academics +
         weights.graduation * grad +
         weights.outcomes * outcomes +
+        weights.reputation * reputation +
         weights.affordability * affordability) /
         wsum) *
       100;

@@ -30,6 +30,7 @@ import { SchoolList } from '@/components/map/SchoolList';
 import { SchoolForm, type FormSeed } from '@/components/map/SchoolForm';
 import { SchoolFitPanel } from '@/components/map/SchoolFitPanel';
 import { SyncMenu } from '@/components/map/SyncMenu';
+import { VisitTipsDialog } from '@/components/map/VisitTipsDialog';
 import { useSchools, type NewSchool } from '@/hooks/useSchools';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
@@ -218,6 +219,7 @@ export function CampusMapPage() {
         </div>
 
         <div className="flex items-center gap-2">
+          <VisitTipsDialog />
           <SyncMenu
             configured={isSupabaseConfigured}
             email={email}
