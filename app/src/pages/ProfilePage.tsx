@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { ChevronLeft, GraduationCap, Trophy, UserRound, Map } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SyncMenu } from '@/components/map/SyncMenu';
+import { ApiKeySettings } from '@/components/ApiKeySettings';
 import { AcademicsSection } from '@/components/profile/AcademicsSection';
 import { ExtracurricularsSection } from '@/components/profile/ExtracurricularsSection';
 import { WhoIAmSection } from '@/components/profile/WhoIAmSection';
@@ -48,6 +49,7 @@ export function ProfilePage() {
           >
             <Map className="h-4 w-4" /> Campus Map
           </Link>
+          <ApiKeySettings />
           <SyncMenu
             configured={isSupabaseConfigured}
             email={email}
