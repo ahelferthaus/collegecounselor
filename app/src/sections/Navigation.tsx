@@ -124,13 +124,13 @@ export function Navigation() {
             {/* Desktop CTA */}
             <div className="hidden lg:flex items-center gap-4">
               <Button
+                asChild
                 variant="ghost"
-                onClick={openWaitlist}
                 className={`text-sm font-medium ${
                   isScrolled ? 'text-navy-700' : 'text-navy-700'
                 }`}
               >
-                Log In
+                <Link to="/login">Log In</Link>
               </Button>
               <Button
                 onClick={openWaitlist}
@@ -243,11 +243,13 @@ export function Navigation() {
 
           <div className="mt-6 pt-6 border-t border-gray-100 space-y-3">
             <Button
+              asChild
               variant="outline"
-              onClick={openWaitlist}
               className="w-full justify-center"
             >
-              Log In
+              <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>
+                Log In
+              </Link>
             </Button>
             <Button
               onClick={openWaitlist}

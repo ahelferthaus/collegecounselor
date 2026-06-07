@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
+import { isAllowedEmail } from '@/lib/access';
 
 export interface AuthState {
   session: Session | null;
@@ -48,27 +49,47 @@ export function useAuth() {
 
   const signInWithEmail = useCallback(async (email: string) => {
     if (!supabase) throw new Error('Sync is not configured.');
+    // Accounts are pre-created (private app) — don't create new users from a
+    // magic-link request, so only allowlisted accounts can ever receive a link.
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
-      options: { emailRedirectTo: redirectTo() },
+      options: { emailRedirectTo: redirectTo(), shouldCreateUser: false },
     });
     if (error) throw error;
   }, []);
+
+  const signInWithPassword = useCallback(
+    async (email: string, password: string) => {
+      if (!supabase) throw new Error('Login is not configured.');
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+      if (error) throw error;
+    },
+    [],
+  );
 
   const signOut = useCallback(async () => {
     if (!supabase) return;
     await supabase.auth.signOut();
   }, []);
 
+  const email = session?.user.email ?? null;
+
   return {
     session,
     userId: session?.user.id ?? null,
-    email: session?.user.email ?? null,
+    email,
     loading,
+    allowed: isAllowedEmail(email),
     signInWithEmail,
+    signInWithPassword,
     signOut,
   } satisfies AuthState & {
+    allowed: boolean;
     signInWithEmail: (email: string) => Promise<void>;
+    signInWithPassword: (email: string, password: string) => Promise<void>;
     signOut: () => Promise<void>;
   };
 }
