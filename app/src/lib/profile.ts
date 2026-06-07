@@ -131,6 +131,45 @@ export interface WhoIAm {
   story: string;
 }
 
+export type ScholarshipStatus =
+  | 'researching'
+  | 'applying'
+  | 'applied'
+  | 'awarded'
+  | 'rejected';
+export type ScholarshipScope = 'general' | 'school' | 'state' | 'federal' | 'other';
+
+export const SCHOLARSHIP_STATUS_LABELS: Record<ScholarshipStatus, string> = {
+  researching: 'Researching',
+  applying: 'Applying',
+  applied: 'Applied',
+  awarded: 'Awarded',
+  rejected: 'Not selected',
+};
+
+export const SCHOLARSHIP_SCOPE_LABELS: Record<ScholarshipScope, string> = {
+  general: 'National',
+  school: 'School-specific',
+  state: 'State',
+  federal: 'Federal',
+  other: 'Other',
+};
+
+export interface SavedScholarship {
+  id: string;
+  name: string;
+  provider: string;
+  amount: string;
+  deadline: string;
+  url: string;
+  eligibility: string;
+  scope: ScholarshipScope;
+  status: ScholarshipStatus;
+  notes: string;
+  schoolName: string;
+  createdAt: number;
+}
+
 export interface StudentProfile {
   academics: {
     courses: Course[];
@@ -139,7 +178,28 @@ export interface StudentProfile {
   };
   extracurriculars: Activity[];
   whoIAm: WhoIAm;
+  scholarships: SavedScholarship[];
   updatedAt: number;
+}
+
+export function newScholarship(
+  partial: Partial<SavedScholarship> = {},
+): SavedScholarship {
+  return {
+    id: createId(),
+    name: '',
+    provider: '',
+    amount: '',
+    deadline: '',
+    url: '',
+    eligibility: '',
+    scope: 'general',
+    status: 'researching',
+    notes: '',
+    schoolName: '',
+    createdAt: Date.now(),
+    ...partial,
+  };
 }
 
 export const PROFILE_STORAGE_KEY = 'cc_student_profile_v1';
@@ -148,6 +208,7 @@ export function emptyProfile(): StudentProfile {
   return {
     academics: { courses: [], tests: [], weighted: true },
     extracurriculars: [],
+    scholarships: [],
     whoIAm: {
       highSchool: '',
       gradYear: '',
@@ -290,6 +351,7 @@ export function mergeProfile(data: unknown): StudentProfile {
       weighted: d.academics?.weighted ?? true,
     },
     extracurriculars: Array.isArray(d.extracurriculars) ? d.extracurriculars : [],
+    scholarships: Array.isArray(d.scholarships) ? d.scholarships : [],
     whoIAm: { ...base.whoIAm, ...(d.whoIAm ?? {}) },
     updatedAt: typeof d.updatedAt === 'number' ? d.updatedAt : Date.now(),
   };

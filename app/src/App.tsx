@@ -7,6 +7,7 @@ import { PlanPage } from './pages/PlanPage';
 import { DiscoverPage } from './pages/DiscoverPage';
 import { RankingsPage } from './pages/RankingsPage';
 import { ComparePage } from './pages/ComparePage';
+import { AidPage } from './pages/AidPage';
 import './App.css';
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
         <Route path="/discover" element={<DiscoverPage />} />
         <Route path="/rankings" element={<RankingsPage />} />
         <Route path="/compare" element={<ComparePage />} />
+        <Route path="/aid" element={<AidPage />} />
       </Routes>
       <Toaster position="bottom-right" richColors />
     </HashRouter>
