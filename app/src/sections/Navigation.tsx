@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { MessageCircle, Menu, X, Map, UserRound, Sparkles, Compass, Trophy, Columns3, PiggyBank } from 'lucide-react';
+import { Menu, X, Map, UserRound, Sparkles, Compass, Trophy, Columns3, PiggyBank } from 'lucide-react';
 import { useWaitlist } from '@/context/WaitlistContext';
 
 const navLinks = [
@@ -47,9 +47,12 @@ export function Navigation() {
           <div className="flex items-center justify-between h-16 lg:h-20">
             {/* Logo */}
             <a href="#" className="flex items-center gap-2">
-              <div className="w-9 h-9 bg-gradient-to-br from-purple-500 to-teal-500 rounded-lg flex items-center justify-center">
-                <MessageCircle className="w-4 h-4 text-white" />
-              </div>
+              <img
+                src={`${import.meta.env.BASE_URL}brand/college-advisor-cap-512.png`}
+                alt=""
+                aria-hidden="true"
+                className="h-11 w-11 object-contain"
+              />
               <span className={`font-bold font-heading text-lg transition-colors ${
                 isScrolled ? 'text-navy-900' : 'text-navy-900'
               }`}>

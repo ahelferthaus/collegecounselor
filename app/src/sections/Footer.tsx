@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import {
-  MessageCircle,
   Mail,
   Phone,
   MapPin,
@@ -74,9 +73,12 @@ export function Footer() {
           {/* Brand Column */}
           <div className="col-span-2 md:col-span-3 lg:col-span-2">
             <div className="flex items-center gap-2 mb-6">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-teal-500 rounded-xl flex items-center justify-center">
-                <MessageCircle className="w-5 h-5 text-white" />
-              </div>
+              <img
+                src={`${import.meta.env.BASE_URL}brand/college-advisor-cap-512.png`}
+                alt=""
+                aria-hidden="true"
+                className="h-12 w-12 object-contain"
+              />
               <span className="text-xl font-bold font-heading">
                 College Counselor AI
               </span>
